@@ -207,10 +207,10 @@ public class CadastroLivro extends javax.swing.JFrame {
     private void btnConsultarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConsultarActionPerformed
         String ISBN = edtISBN.getText();
         DAO dao = new DAO();
-        
+
         if (dao.conectar()) {
             Livro livro = dao.consultarLivro(ISBN);
-            
+
             if (livro == null) {
                 JOptionPane.showMessageDialog(null, "Livro não encontrado");
             } else {
@@ -218,7 +218,7 @@ public class CadastroLivro extends javax.swing.JFrame {
                 edtAutor.setText(livro.getAutor());
                 edtCategoria.setText(livro.getCategoria());
                 edtAno.setText(livro.getAno());
-                edtEditora.setText(livro.getEditora());            
+                edtEditora.setText(livro.getEditora());
             }
             dao.desconectar();
         } else {
