@@ -8,12 +8,12 @@ package view;
  *
  * @author gille
  */
-public class Menu extends javax.swing.JFrame {
+public class Main extends javax.swing.JFrame {
 
     /**
-     * Creates new form Menu
+     * Creates new form Main
      */
-    public Menu() {
+    public Main() {
         initComponents();
     }
 
@@ -26,31 +26,32 @@ public class Menu extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPopupMenu1 = new javax.swing.JPopupMenu();
-        jInternalFrame1 = new javax.swing.JInternalFrame();
+        desktop = new javax.swing.JDesktopPane();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         itemCadLivro = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
+        itemConsultaLivro = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Boa Biblioteca");
 
-        jInternalFrame1.setVisible(true);
+        desktop.setDragMode(javax.swing.JDesktopPane.OUTLINE_DRAG_MODE);
 
-        javax.swing.GroupLayout jInternalFrame1Layout = new javax.swing.GroupLayout(jInternalFrame1.getContentPane());
-        jInternalFrame1.getContentPane().setLayout(jInternalFrame1Layout);
-        jInternalFrame1Layout.setHorizontalGroup(
-            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 718, Short.MAX_VALUE)
+        javax.swing.GroupLayout desktopLayout = new javax.swing.GroupLayout(desktop);
+        desktop.setLayout(desktopLayout);
+        desktopLayout.setHorizontalGroup(
+            desktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1193, Short.MAX_VALUE)
         );
-        jInternalFrame1Layout.setVerticalGroup(
-            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 414, Short.MAX_VALUE)
+        desktopLayout.setVerticalGroup(
+            desktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 631, Short.MAX_VALUE)
         );
 
-        jMenu1.setText("Cadastro");
+        jMenu1.setText("Cadastrar");
 
-        itemCadLivro.setText("Cadastrar Livro");
+        itemCadLivro.setText("Livro");
         itemCadLivro.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 itemCadLivroActionPerformed(evt);
@@ -60,7 +61,16 @@ public class Menu extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu1);
 
-        jMenu2.setText("Consulta");
+        jMenu2.setText("Consultar");
+
+        itemConsultaLivro.setText("Livros");
+        itemConsultaLivro.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemConsultaLivroActionPerformed(evt);
+            }
+        });
+        jMenu2.add(itemConsultaLivro);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -69,24 +79,30 @@ public class Menu extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jInternalFrame1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 128, Short.MAX_VALUE))
+            .addComponent(desktop, javax.swing.GroupLayout.Alignment.TRAILING)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jInternalFrame1, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(desktop, javax.swing.GroupLayout.Alignment.TRAILING)
         );
 
-        setSize(new java.awt.Dimension(874, 481));
+        setSize(new java.awt.Dimension(1209, 662));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void itemCadLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemCadLivroActionPerformed
         // TODO add your handling code here:
-        CadastroLivro cadLivro = new CadastroLivro();
+        CadLivro cadLivro = new CadLivro();
         cadLivro.setVisible(true);
+        desktop.add(cadLivro);
     }//GEN-LAST:event_itemCadLivroActionPerformed
+
+    private void itemConsultaLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemConsultaLivroActionPerformed
+        // TODO add your handling code here:
+        ConsultarLivro consultarLivro = new ConsultarLivro();
+        consultarLivro.setVisible(true);
+        desktop.add(consultarLivro);
+    }//GEN-LAST:event_itemConsultaLivroActionPerformed
 
     /**
      * @param args the command line arguments
@@ -105,30 +121,30 @@ public class Menu extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Menu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Menu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Menu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Menu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Menu().setVisible(true);
+                new Main().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JDesktopPane desktop;
     private javax.swing.JMenuItem itemCadLivro;
-    private javax.swing.JInternalFrame jInternalFrame1;
+    private javax.swing.JMenuItem itemConsultaLivro;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JPopupMenu jPopupMenu1;
     // End of variables declaration//GEN-END:variables
 }
