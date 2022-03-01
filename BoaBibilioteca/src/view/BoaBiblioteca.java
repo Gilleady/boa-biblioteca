@@ -86,7 +86,9 @@ public class BoaBiblioteca extends javax.swing.JFrame {
         
         if (usuario.equals("BoaBiblioteca") && senha.equals("Ieadmsbc")) {
             //Iniciar próxima Tela
-            
+            Main main = new Main();
+            main.setVisible(true);
+            this.dispose();            
         } else {
             //Solicitar o usuario e senhas corretos
             System.out.println("Usuário ou Senha incorretos");
