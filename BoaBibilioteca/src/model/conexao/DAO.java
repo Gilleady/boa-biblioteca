@@ -76,6 +76,8 @@ public class DAO {
         } 
     }
     
-    
+    public void listar(){
+         
+    }
     
 }

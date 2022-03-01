@@ -1,5 +1,7 @@
 package view;
 
+import javax.swing.JOptionPane;
+
 public class BoaBiblioteca extends javax.swing.JFrame {
 
     public BoaBiblioteca() {
@@ -86,10 +88,13 @@ public class BoaBiblioteca extends javax.swing.JFrame {
         
         if (usuario.equals("BoaBiblioteca") && senha.equals("Ieadmsbc")) {
             //Iniciar próxima Tela
+            Menu menu = new Menu();
+            menu.setVisible(true);
+            dispose();
             
         } else {
             //Solicitar o usuario e senhas corretos
-            System.out.println("Usuário ou Senha incorretos");
+            JOptionPane.showMessageDialog(null, "Usuário ou Senha incorretos");
         }
     }//GEN-LAST:event_btnLogarActionPerformed
 
