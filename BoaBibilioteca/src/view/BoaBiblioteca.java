@@ -19,8 +19,7 @@ public class BoaBiblioteca extends javax.swing.JFrame {
         pwdSenha = new javax.swing.JPasswordField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Login - Boa Biblioteca");
-        setResizable(false);
+        setTitle("Login");
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel1.setText("Usuário:");
@@ -82,13 +81,13 @@ public class BoaBiblioteca extends javax.swing.JFrame {
         String usuario,senha;
         usuario = txtUsuario.getText();
         senha = String.valueOf(pwdSenha.getPassword());
-        
+
         if (usuario.equals("BoaBiblioteca") && senha.equals("Ieadmsbc")) {
             //Iniciar próxima Tela
             Main main = new Main();
             main.setVisible(true);
-            dispose();
-            
+            this.dispose();
+
         } else {
             //Solicitar o usuario e senhas corretos
             JOptionPane.showMessageDialog(null, "Usuário ou Senha incorretos");
