@@ -5,7 +5,7 @@
 package view;
 
 import javax.swing.JOptionPane;
-import model.conexao.DAO;
+import dal.DAO;
 import model.entities.Livro;
 
 /**
@@ -171,14 +171,14 @@ public class CadLivro extends javax.swing.JInternalFrame {
         livro.setEditora(edtEditora.getText());
 
         if(dao.conectar()){
-            int status = dao.salvar(livro);
+            int status = dao.salvarLivro(livro);
             switch (status) {
                 case 1 -> {
                     JOptionPane.showMessageDialog(null, "Dados inseridos com Sucesso");
                     limpar();
                 }
                 case 1062 -> JOptionPane.showMessageDialog(null, "Código do livro já cadastrado");
-                default -> JOptionPane.showMessageDialog(null, "Erro ao tentar cadastrar");
+                default -> JOptionPane.showMessageDialog(null, "Erro ao tentar cadastrar\nCódigo do erro: " + status);
             }
             dao.desconectar();
         } else {

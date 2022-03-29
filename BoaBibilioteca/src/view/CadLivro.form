@@ -33,12 +33,10 @@
                   <Component id="jLabel6" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel7" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Component id="btnSalvar" alignment="2" max="-2" attributes="0"/>
-                  <Group type="103" alignment="2" groupAlignment="2" attributes="0">
-                      <Component id="jLabel1" alignment="2" max="-2" attributes="0"/>
-                      <Group type="103" alignment="2" groupAlignment="0" attributes="0">
-                          <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="edtISBN" alignment="2" min="-2" pref="728" max="-2" attributes="0"/>
-                      </Group>
+                  <Component id="jLabel1" alignment="2" max="-2" attributes="0"/>
+                  <Group type="103" alignment="2" groupAlignment="0" attributes="0">
+                      <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="edtISBN" alignment="2" min="-2" pref="728" max="-2" attributes="0"/>
                   </Group>
                   <Component id="edtAutor" alignment="2" min="-2" pref="728" max="-2" attributes="0"/>
                   <Component id="edtTitulo" alignment="2" min="-2" pref="728" max="-2" attributes="0"/>
