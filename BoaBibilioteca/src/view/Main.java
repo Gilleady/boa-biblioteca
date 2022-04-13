@@ -10,6 +10,9 @@ package view;
  */
 public class Main extends javax.swing.JFrame {
 
+    ConsultarLivro consultarLivro = new ConsultarLivro();
+    CadLivro cadLivro = new CadLivro();
+
     /**
      * Creates new form Main
      */
@@ -92,14 +95,14 @@ public class Main extends javax.swing.JFrame {
 
     private void itemCadLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemCadLivroActionPerformed
         // TODO add your handling code here:
-        CadLivro cadLivro = new CadLivro();
+        desktop.remove(consultarLivro);
         cadLivro.setVisible(true);
         desktop.add(cadLivro);
     }//GEN-LAST:event_itemCadLivroActionPerformed
 
     private void itemConsultaLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemConsultaLivroActionPerformed
         // TODO add your handling code here:
-        ConsultarLivro consultarLivro = new ConsultarLivro();
+        desktop.remove(cadLivro);
         consultarLivro.setVisible(true);
         desktop.add(consultarLivro);
     }//GEN-LAST:event_itemConsultaLivroActionPerformed
