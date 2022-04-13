@@ -53,6 +53,11 @@ public class TelaLogin extends javax.swing.JFrame {
         lblSenha.setBounds(540, 240, 60, 30);
 
         txtUsuario.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        txtUsuario.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtUsuarioKeyPressed(evt);
+            }
+        });
         getContentPane().add(txtUsuario);
         txtUsuario.setBounds(620, 180, 250, 30);
 
@@ -63,6 +68,11 @@ public class TelaLogin extends javax.swing.JFrame {
         lblUsuario.setBounds(530, 180, 70, 30);
 
         pswSenha.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        pswSenha.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                pswSenhaKeyPressed(evt);
+            }
+        });
         getContentPane().add(pswSenha);
         pswSenha.setBounds(620, 240, 250, 30);
 
@@ -133,8 +143,9 @@ public class TelaLogin extends javax.swing.JFrame {
                 Main menu = new Main();
                 menu.setVisible(true);
                 this.dispose();
-            } else if(status.equals("Usuário não encontrado")){
+            } else if (status.equals("Usuário não encontrado")) {
                 lblUsuarioIncorreto.setText(status);
+                txtUsuario.requestFocus();
                 lblSenhaIncorreta.setText("");
                 limpar();
             } else {
@@ -149,15 +160,29 @@ public class TelaLogin extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnEntrarActionPerformed
 
-    
+    private void txtUsuarioKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtUsuarioKeyPressed
+        // TODO add your handling code here:
+        if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+            pswSenha.requestFocus();
+        }
+    }//GEN-LAST:event_txtUsuarioKeyPressed
+
+    private void pswSenhaKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_pswSenhaKeyPressed
+        // TODO add your handling code here:
+        if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+            btnEntrar.doClick();
+        }
+    }//GEN-LAST:event_pswSenhaKeyPressed
+
     public void limpar() {
         txtUsuario.setText("");
         pswSenha.setText("");
     }
-    
+
     public void limparSenha() {
         pswSenha.setText("");
     }
+
     /**
      * @param args the command line arguments
      */
