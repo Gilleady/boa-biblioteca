@@ -14,18 +14,18 @@ import model.entities.Livro;
  *
  * @author gille
  */
-public class ConsultarLivro extends javax.swing.JInternalFrame {
+public class ConsultarLivros extends javax.swing.JInternalFrame {
 
     /**
      * Creates new form ConsultarLivro
      */
-    public ConsultarLivro() {
+    public ConsultarLivros() {
         initComponents();
     }
-    
-    public void listar(){
+
+    public void listar() {
         DAO dao = new DAO();
-        if(dao.conectar()) {
+        if (dao.conectar()) {
             List<Livro> lista = dao.listarLivros();
             DefaultTableModel dados = (DefaultTableModel) tblLivros.getModel();
             dados.setNumRows(0);
@@ -60,21 +60,13 @@ public class ConsultarLivro extends javax.swing.JInternalFrame {
         lblPesquisar = new javax.swing.JLabel();
 
         setPreferredSize(new java.awt.Dimension(1193, 600));
-        addInternalFrameListener(new javax.swing.event.InternalFrameListener() {
-            public void internalFrameActivated(javax.swing.event.InternalFrameEvent evt) {
+        addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
+                formAncestorAdded(evt);
             }
-            public void internalFrameClosed(javax.swing.event.InternalFrameEvent evt) {
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
             }
-            public void internalFrameClosing(javax.swing.event.InternalFrameEvent evt) {
-            }
-            public void internalFrameDeactivated(javax.swing.event.InternalFrameEvent evt) {
-            }
-            public void internalFrameDeiconified(javax.swing.event.InternalFrameEvent evt) {
-            }
-            public void internalFrameIconified(javax.swing.event.InternalFrameEvent evt) {
-            }
-            public void internalFrameOpened(javax.swing.event.InternalFrameEvent evt) {
-                formInternalFrameOpened(evt);
+            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
             }
         });
 
@@ -182,11 +174,10 @@ public class ConsultarLivro extends javax.swing.JInternalFrame {
         setBounds(0, 0, 1193, 600);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void formInternalFrameOpened(javax.swing.event.InternalFrameEvent evt) {//GEN-FIRST:event_formInternalFrameOpened
+    private void formAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_formAncestorAdded
         // TODO add your handling code here:
         this.listar();
-
-    }//GEN-LAST:event_formInternalFrameOpened
+    }//GEN-LAST:event_formAncestorAdded
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

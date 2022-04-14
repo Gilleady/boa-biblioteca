@@ -2,12 +2,14 @@ package dal;
 
 import java.sql.PreparedStatement;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import model.entities.Livro;
+import model.entities.Pessoa;
 import model.entities.Usuario;
 
 public class DAO {
@@ -144,4 +146,44 @@ public class DAO {
         }
     }
 
+    
+    public int salvarPessoa(Pessoa p){
+        int status;
+        try {
+            st = conn.prepareStatement("INSERT INTO cliente(cpf, nome, rg) VALUES (?, ?, ?)");
+            st.setString(1, p.getCpf());
+            st.setString(2, p.getNome());
+            st.setString(3, p.getRg());
+            //st.setDate(4, (Date) p.getData_nascimento());
+
+            status = st.executeUpdate();
+            return status;
+
+        } catch (SQLException ex) {
+            return ex.getErrorCode();
+        }
+    }
+    
+    public List<Pessoa> listarPessoas() {
+        try {
+            List<Pessoa> lista = new ArrayList<>();
+            st = conn.prepareStatement("SELECT * FROM cliente");
+            res = st.executeQuery();
+            //verifica se a consulta encontrou o registro com o identificador informado
+            
+                while (res.next()) {
+                    Pessoa p = new Pessoa();
+                    p.setCpf(res.getString("cpf"));
+                    p.setNome(res.getString("nome"));
+                    p.setRg(res.getString("rg"));
+                    
+                    lista.add(p);
+                    System.out.println(lista);
+                }
+                return lista;
+
+        } catch (SQLException ex) {
+            return null;
+        }
+    }
 }
