@@ -20,6 +20,10 @@ public class Main extends javax.swing.JFrame {
      */
     public Main() {
         initComponents();
+                
+        consultarLivros.setVisible(true);
+        desktop.add(consultarLivros);
+
     }
 
     /**
@@ -42,6 +46,7 @@ public class Main extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Boa Biblioteca");
+        setResizable(false);
 
         desktop.setDragMode(javax.swing.JDesktopPane.OUTLINE_DRAG_MODE);
 
