@@ -8,6 +8,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import dal.DAO;
+import java.awt.HeadlessException;
 import java.beans.PropertyVetoException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,6 +68,8 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
         txtPesquisar = new javax.swing.JTextField();
         lblPesquisar = new javax.swing.JLabel();
         btnEditar = new javax.swing.JButton();
+        btnExcluir = new javax.swing.JButton();
+        btnNovo = new javax.swing.JButton();
 
         setPreferredSize(new java.awt.Dimension(1193, 600));
         setVisible(true);
@@ -102,7 +105,7 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
 
         lblPesquisar.setText("Pesquisar:");
 
-        btnEditar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/editar.png"))); // NOI18N
+        btnEditar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/edit.png"))); // NOI18N
         btnEditar.setToolTipText("Editar");
         btnEditar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnEditar.setPreferredSize(new java.awt.Dimension(80, 80));
@@ -112,22 +115,47 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
             }
         });
 
+        btnExcluir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/trash.png"))); // NOI18N
+        btnExcluir.setToolTipText("Excluir");
+        btnExcluir.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnExcluir.setPreferredSize(new java.awt.Dimension(80, 80));
+        btnExcluir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExcluirActionPerformed(evt);
+            }
+        });
+
+        btnNovo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/add.png"))); // NOI18N
+        btnNovo.setToolTipText("Novo");
+        btnNovo.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnNovo.setPreferredSize(new java.awt.Dimension(80, 80));
+        btnNovo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnNovoActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1191, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
+                .addGap(91, 91, 91)
+                .addComponent(lblPesquisar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(91, 91, 91)
-                        .addComponent(lblPesquisar)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtPesquisar, javax.swing.GroupLayout.PREFERRED_SIZE, 394, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtPesquisar, javax.swing.GroupLayout.PREFERRED_SIZE, 394, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(258, 258, 258)
-                        .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 237, Short.MAX_VALUE)
+                        .addComponent(btnNovo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(89, 89, 89)
+                        .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(108, 108, 108)
+                        .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(357, 357, 357))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -137,7 +165,10 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
                     .addComponent(txtPesquisar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblPesquisar))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnNovo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -152,26 +183,69 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
         // TODO add your handling code here:
-        Livro livro = new Livro();
+        try {
+            Livro livro = new Livro();
 
-        livro.setISBN((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 0));
-        livro.setTitulo((String) tblLivros.getValueAt(tblLivros.getSelectedRow(),1));
-        livro.setAutor((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 2));
-        livro.setCategoria((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 3));
-        livro.setAno((int) tblLivros.getValueAt(tblLivros.getSelectedRow(), 4));
-        livro.setEditora((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 5));
-        
-        CadLivro cdLi = new CadLivro(livro);
-        cdLi.setVisible(true);
-        Main.desktop.add(cdLi);
-        this.dispose();
-        Main.desktop.remove(this);
+            livro.setISBN((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 0));
+            livro.setTitulo((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 1));
+            livro.setAutor((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 2));
+            livro.setCategoria((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 3));
+            System.out.println(livro.getCategoria());
+            livro.setAno((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 4));
+            System.out.println(livro.getAno());
+            livro.setEditora((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 5));
+
+            CadLivro cdLi = new CadLivro(livro);
+            cdLi.setVisible(true);
+            Main.desktop.add(cdLi);
+            this.dispose();
+            Main.desktop.remove(this);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            JOptionPane.showMessageDialog(null, "Selecione uma linha para editar");
+        }
 
     }//GEN-LAST:event_btnEditarActionPerformed
+
+    private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirActionPerformed
+        // TODO add your handling code here:
+        try {
+            String isbn = (String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 0);
+            String titulo = (String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 1);
+
+            int confirmacao = JOptionPane.showConfirmDialog(null, "Deseja Realmente Excluir o Livro abaixo?"
+                    + "\nISBN: " + isbn + "\nTítulo: " + titulo, "Atenção", JOptionPane.YES_NO_OPTION);
+            if (confirmacao == 0) {
+                DAO dao = new DAO();
+                if (dao.conectar()) {
+                    int status = dao.excluirLivro(isbn);
+                    switch (status) {
+                        case 1 -> {
+                            JOptionPane.showMessageDialog(null, "Livro excluído com Sucesso");
+                            Main.itmConsultarLivro.doClick();
+                        }
+                        default ->
+                            JOptionPane.showMessageDialog(null, "Erro ao tentar excluir\nCódigo do erro: " + status);
+                    }
+                    dao.desconectar();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Erro ao conectar com o banco de dados");
+                }
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            JOptionPane.showMessageDialog(null, "Selecione uma linha para excluir");
+        }
+    }//GEN-LAST:event_btnExcluirActionPerformed
+
+    private void btnNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovoActionPerformed
+        // TODO add your handling code here:
+        Main.itmCadLivro.doClick();
+    }//GEN-LAST:event_btnNovoActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEditar;
+    private javax.swing.JButton btnExcluir;
+    private javax.swing.JButton btnNovo;
     private javax.swing.JScrollPane jScrollPane;
     private javax.swing.JLabel lblPesquisar;
     private javax.swing.JTable tblLivros;

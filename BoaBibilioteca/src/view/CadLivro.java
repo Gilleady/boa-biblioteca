@@ -10,7 +10,6 @@ import java.beans.PropertyVetoException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.entities.Livro;
-import static view.Main.desktop;
 
 /**
  *
@@ -19,37 +18,38 @@ import static view.Main.desktop;
 public class CadLivro extends javax.swing.JInternalFrame {
 
     ConsultarLivros consultarLivros = new ConsultarLivros();
+    Livro livro;
 
     /**
      * Creates new form CadLivro
      */
     public CadLivro() {
         initComponents();
-        
+
         try {
             this.setMaximum(true);
         } catch (PropertyVetoException ex) {
             Logger.getLogger(CadLivro.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         btnEditar.setVisible(false);
     }
 
     public CadLivro(Livro livro) {
         initComponents();
-        
+
         try {
             this.setMaximum(true);
         } catch (PropertyVetoException ex) {
             Logger.getLogger(CadLivro.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         edtISBN.setText(livro.getISBN());
         edtISBN.setEnabled(false);
         edtTitulo.setText(livro.getTitulo());
         edtAutor.setText(livro.getAutor());
         edtCategoria.setText(livro.getCategoria());
-        edtAno.setText(String.valueOf(livro.getAno()));
+        jFormattedTextField1.setText(livro.getAno());
         edtEditora.setText(livro.getEditora());
         edtISBN.requestFocus();
         btnSalvar.setVisible(false);
@@ -70,7 +70,6 @@ public class CadLivro extends javax.swing.JInternalFrame {
         jLabel5 = new javax.swing.JLabel();
         edtCategoria = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
-        edtAno = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
         edtEditora = new javax.swing.JTextField();
         edtISBN = new javax.swing.JTextField();
@@ -79,11 +78,12 @@ public class CadLivro extends javax.swing.JInternalFrame {
         jLabel2 = new javax.swing.JLabel();
         edtAutor = new javax.swing.JTextField();
         btnEditar = new javax.swing.JButton();
+        jFormattedTextField1 = new javax.swing.JFormattedTextField();
 
         setPreferredSize(new java.awt.Dimension(1193, 600));
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel3.setText("Título:");
+        jLabel3.setText("*Título:");
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel4.setText("Autor:");
@@ -100,22 +100,16 @@ public class CadLivro extends javax.swing.JInternalFrame {
         jLabel5.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel5.setText("Categoria:");
 
-        edtCategoria.setBackground(new java.awt.Color(204, 204, 204));
         edtCategoria.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel6.setText("Ano:");
 
-        edtAno.setBackground(new java.awt.Color(204, 204, 204));
-        edtAno.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-
         jLabel7.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel7.setText("Editora:");
 
-        edtEditora.setBackground(new java.awt.Color(204, 204, 204));
         edtEditora.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
-        edtISBN.setBackground(new java.awt.Color(204, 204, 204));
         edtISBN.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
@@ -123,13 +117,11 @@ public class CadLivro extends javax.swing.JInternalFrame {
         jLabel1.setText("Cadastro de Livros");
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
-        edtTitulo.setBackground(new java.awt.Color(204, 204, 204));
         edtTitulo.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel2.setText("ISBN:");
+        jLabel2.setText("*ISBN:");
 
-        edtAutor.setBackground(new java.awt.Color(204, 204, 204));
         edtAutor.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
         btnEditar.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
@@ -141,38 +133,46 @@ public class CadLivro extends javax.swing.JInternalFrame {
             }
         });
 
+        jFormattedTextField1.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("###0"))));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jFormattedTextField1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 726, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditar, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(edtEditora, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 727, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(edtCategoria, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 727, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(edtAutor, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 727, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(edtTitulo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 727, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(edtISBN, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 727, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(227, 227, 227))
+            .addGroup(javax.swing.GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
+                .addGap(542, 542, 542)
+                .addComponent(btnSalvar, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(543, 543, 543))
+            .addGroup(javax.swing.GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
+                .addGap(493, 493, 493)
+                .addComponent(jLabel1)
+                .addGap(493, 493, 493))
+            .addGroup(layout.createSequentialGroup()
                 .addGap(227, 227, 227)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel4)
-                    .addComponent(jLabel5)
-                    .addComponent(jLabel6)
+                    .addComponent(jLabel2)
                     .addComponent(jLabel7)
-                    .addGroup(javax.swing.GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-                        .addGap(321, 321, 321)
-                        .addComponent(btnSalvar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(219, 219, 219)
-                        .addComponent(btnEditar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.CENTER)
-                    .addGroup(javax.swing.GroupLayout.Alignment.CENTER, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jLabel2)
-                        .addComponent(edtISBN, javax.swing.GroupLayout.Alignment.CENTER, javax.swing.GroupLayout.PREFERRED_SIZE, 728, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(edtAutor, javax.swing.GroupLayout.Alignment.CENTER, javax.swing.GroupLayout.PREFERRED_SIZE, 728, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(edtTitulo, javax.swing.GroupLayout.Alignment.CENTER, javax.swing.GroupLayout.PREFERRED_SIZE, 728, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(edtEditora, javax.swing.GroupLayout.Alignment.CENTER, javax.swing.GroupLayout.PREFERRED_SIZE, 728, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(edtAno, javax.swing.GroupLayout.Alignment.CENTER, javax.swing.GroupLayout.PREFERRED_SIZE, 728, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(edtCategoria, javax.swing.GroupLayout.Alignment.CENTER, javax.swing.GroupLayout.PREFERRED_SIZE, 728, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(226, 226, 226))
+                    .addComponent(jLabel6)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel3))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(14, Short.MAX_VALUE)
+                .addContainerGap(11, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -193,31 +193,63 @@ public class CadLivro extends javax.swing.JInternalFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(edtAno, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jFormattedTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(edtEditora, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnEditar)
                     .addComponent(btnSalvar))
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addContainerGap(11, Short.MAX_VALUE))
         );
+
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {btnEditar, btnSalvar});
+
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {edtAutor, edtCategoria, edtEditora, edtISBN, edtTitulo, jFormattedTextField1});
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
-        Livro livro = new Livro();
-        DAO dao = new DAO();
+    public Livro setarLivro() {
+        livro = new Livro();
 
         livro.setISBN(edtISBN.getText());
         livro.setTitulo(edtTitulo.getText());
         livro.setAutor(edtAutor.getText());
         livro.setCategoria(edtCategoria.getText());
-        livro.setAno(Integer.parseInt(edtAno.getText()));
+        livro.setAno(jFormattedTextField1.getText());
         livro.setEditora(edtEditora.getText());
+        verificaCamposVazios();
+
+        return livro;
+    }
+
+    public void verificaCamposVazios() {
+        if (livro.getAutor().equals("")) {
+            livro.setAutor(null);
+        }
+        if (livro.getCategoria().equals("")) {
+            livro.setCategoria(null);
+        }
+        if (livro.getAno().equals("")) {
+            livro.setAno(null);
+        }
+        if (livro.getEditora().equals("")) {
+            livro.setEditora(null);
+        }
+    }
+
+    private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
+        if (edtISBN.getText().equals("") || edtTitulo.getText().equals("")) {
+            JOptionPane.showMessageDialog(null, "Preencha todos os campos obrigatórios");
+            edtISBN.requestFocus();
+            return;
+        }
+
+        DAO dao = new DAO();
+        Livro livro = setarLivro();
 
         if (dao.conectar()) {
             int status = dao.salvarLivro(livro);
@@ -239,15 +271,13 @@ public class CadLivro extends javax.swing.JInternalFrame {
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
         // TODO add your handling code here:
-        Livro livro = new Livro();
+        if (edtTitulo.getText().equals("")) {
+            JOptionPane.showMessageDialog(null, "Preencha todos os campos obrigatórios");
+            edtTitulo.requestFocus();
+            return;
+        }
         DAO dao = new DAO();
-
-        livro.setISBN(edtISBN.getText());
-        livro.setTitulo(edtTitulo.getText());
-        livro.setAutor(edtAutor.getText());
-        livro.setCategoria(edtCategoria.getText());
-        livro.setAno(Integer.parseInt(edtAno.getText()));
-        livro.setEditora(edtEditora.getText());
+        Livro livro = setarLivro();
 
         if (dao.conectar()) {
             int status = dao.editarLivro(livro);
@@ -255,11 +285,8 @@ public class CadLivro extends javax.swing.JInternalFrame {
                 case 1 -> {
                     JOptionPane.showMessageDialog(null, "Dados alterados com Sucesso");
                     this.dispose();
-                    consultarLivros.setVisible(true);
-                    desktop.add(consultarLivros);
+                    Main.itmConsultarLivro.doClick();
                 }
-                case 1062 ->
-                    JOptionPane.showMessageDialog(null, "Código do livro já cadastrado");
                 default ->
                     JOptionPane.showMessageDialog(null, "Erro ao tentar cadastrar\nCódigo do erro: " + status);
             }
@@ -270,24 +297,24 @@ public class CadLivro extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_btnEditarActionPerformed
 
     public void limpar() {
-        edtISBN.setText("");
-        edtTitulo.setText("");
-        edtAutor.setText("");
-        edtCategoria.setText("");
-        edtAno.setText("");
-        edtEditora.setText("");
+        edtISBN.setText(null);
+        edtTitulo.setText(null);
+        edtAutor.setText(null);
+        edtCategoria.setText(null);
+        jFormattedTextField1.setText(null);
+        edtEditora.setText(null);
         edtISBN.requestFocus();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEditar;
     private javax.swing.JButton btnSalvar;
-    private javax.swing.JTextField edtAno;
     private javax.swing.JTextField edtAutor;
     private javax.swing.JTextField edtCategoria;
     private javax.swing.JTextField edtEditora;
     private javax.swing.JTextField edtISBN;
     private javax.swing.JTextField edtTitulo;
+    private javax.swing.JFormattedTextField jFormattedTextField1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

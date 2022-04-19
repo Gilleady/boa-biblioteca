@@ -36,10 +36,10 @@ public class Main extends javax.swing.JFrame {
 
         desktop = new javax.swing.JDesktopPane();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        menuCad = new javax.swing.JMenu();
         itmCadLivro = new javax.swing.JMenuItem();
         itmCadPessoa = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
+        menuConsulta = new javax.swing.JMenu();
         itmConsultarLivro = new javax.swing.JMenuItem();
         itmConsultarPessoa = new javax.swing.JMenuItem();
 
@@ -60,7 +60,10 @@ public class Main extends javax.swing.JFrame {
             .addGap(0, 631, Short.MAX_VALUE)
         );
 
-        jMenu1.setText("Cadastrar");
+        jMenuBar1.setToolTipText("c");
+
+        menuCad.setMnemonic('c');
+        menuCad.setText("Cadastrar");
 
         itmCadLivro.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.ALT_DOWN_MASK));
         itmCadLivro.setText("Livro");
@@ -69,7 +72,7 @@ public class Main extends javax.swing.JFrame {
                 itmCadLivroActionPerformed(evt);
             }
         });
-        jMenu1.add(itmCadLivro);
+        menuCad.add(itmCadLivro);
 
         itmCadPessoa.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_M, java.awt.event.InputEvent.ALT_DOWN_MASK));
         itmCadPessoa.setText("Solicitante");
@@ -78,11 +81,12 @@ public class Main extends javax.swing.JFrame {
                 itmCadPessoaActionPerformed(evt);
             }
         });
-        jMenu1.add(itmCadPessoa);
+        menuCad.add(itmCadPessoa);
 
-        jMenuBar1.add(jMenu1);
+        jMenuBar1.add(menuCad);
 
-        jMenu2.setText("Consultar");
+        menuConsulta.setMnemonic('s');
+        menuConsulta.setText("Consultar");
 
         itmConsultarLivro.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         itmConsultarLivro.setText("Livros");
@@ -91,7 +95,7 @@ public class Main extends javax.swing.JFrame {
                 itmConsultarLivroActionPerformed(evt);
             }
         });
-        jMenu2.add(itmConsultarLivro);
+        menuConsulta.add(itmConsultarLivro);
 
         itmConsultarPessoa.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_M, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         itmConsultarPessoa.setText("Solicitantes");
@@ -100,9 +104,9 @@ public class Main extends javax.swing.JFrame {
                 itmConsultarPessoaActionPerformed(evt);
             }
         });
-        jMenu2.add(itmConsultarPessoa);
+        menuConsulta.add(itmConsultarPessoa);
 
-        jMenuBar1.add(jMenu2);
+        jMenuBar1.add(menuConsulta);
 
         setJMenuBar(jMenuBar1);
 
@@ -197,12 +201,12 @@ public class Main extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public static javax.swing.JDesktopPane desktop;
-    private javax.swing.JMenuItem itmCadLivro;
+    public static javax.swing.JMenuItem itmCadLivro;
     private javax.swing.JMenuItem itmCadPessoa;
-    private javax.swing.JMenuItem itmConsultarLivro;
+    public static javax.swing.JMenuItem itmConsultarLivro;
     private javax.swing.JMenuItem itmConsultarPessoa;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenu menuCad;
+    private javax.swing.JMenu menuConsulta;
     // End of variables declaration//GEN-END:variables
 }
