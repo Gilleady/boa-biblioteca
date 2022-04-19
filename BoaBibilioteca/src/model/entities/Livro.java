@@ -5,7 +5,7 @@ public class Livro {
     private String titulo;
     private String autor;
     private String categoria;
-    private String ano;
+    private int ano;
     private String editora;
 
     public String getISBN() {
@@ -40,11 +40,11 @@ public class Livro {
         this.categoria = categoria;
     }
 
-    public String getAno() {
+    public int getAno() {
         return ano;
     }
 
-    public void setAno(String ano) {
+    public void setAno(int ano) {
         this.ano = ano;
     }
 

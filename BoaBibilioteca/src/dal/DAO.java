@@ -2,7 +2,6 @@ package dal;
 
 import java.sql.PreparedStatement;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.ResultSet;
@@ -86,8 +85,27 @@ public class DAO {
             st.setString(2, livro.getTitulo());
             st.setString(3, livro.getAutor());
             st.setString(4, livro.getCategoria());
-            st.setString(5, livro.getAno());
+            st.setInt(5, livro.getAno());
             st.setString(6, livro.getEditora());
+
+            status = st.executeUpdate();
+            return status;
+
+        } catch (SQLException ex) {
+            return ex.getErrorCode();
+        }
+    }
+
+    public int editarLivro(Livro livro) {
+        int status;
+        try {
+            st = conn.prepareStatement("UPDATE livro SET nome = ?, autor = ?, categoria = ?, ano = ?, editora = ? WHERE isbn = ?");
+            st.setString(1, livro.getTitulo());
+            st.setString(2, livro.getAutor());
+            st.setString(3, livro.getCategoria());
+            st.setInt(4, livro.getAno());
+            st.setString(5, livro.getEditora());
+            st.setString(6, livro.getISBN());
 
             status = st.executeUpdate();
             return status;
@@ -110,7 +128,7 @@ public class DAO {
                     livro.setTitulo(res.getString("nome"));
                     livro.setAutor(res.getString("autor"));
                     livro.setCategoria(res.getString("categoria"));
-                    livro.setAno(res.getString("ano"));
+                    livro.setAno(res.getInt("ano"));
                     livro.setEditora(res.getString("editora"));
 
                     lista.add(livro);
@@ -122,11 +140,11 @@ public class DAO {
             return null;
         }
     }
-
+    
     public Livro consultarLivro(String ISBN) {
         try {
             Livro livro = new Livro();
-            st = conn.prepareStatement("SELECT * FROM livro WHERE ISBN = ?");
+            st = conn.prepareStatement("SELECT * FROM livro WHERE ISBN LIKE ?%");
             st.setString(1, ISBN);
             res = st.executeQuery();
             //verifica se a consulta encontrou o registro com o identificador informado
@@ -135,7 +153,7 @@ public class DAO {
                 livro.setTitulo(res.getString("nome"));
                 livro.setAutor(res.getString("autor"));
                 livro.setCategoria(res.getString("categoria"));
-                livro.setAno(res.getString("ano"));
+                livro.setAno(res.getInt("ano"));
                 livro.setEditora(res.getString("editora"));
                 return livro;
             } else {
@@ -146,7 +164,6 @@ public class DAO {
         }
     }
 
-    
     public int salvarPessoa(Pessoa p){
         int status;
         try {

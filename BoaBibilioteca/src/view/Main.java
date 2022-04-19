@@ -23,7 +23,6 @@ public class Main extends javax.swing.JFrame {
                 
         consultarLivros.setVisible(true);
         desktop.add(consultarLivros);
-
     }
 
     /**
@@ -124,14 +123,9 @@ public class Main extends javax.swing.JFrame {
 
     private void itmCadLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmCadLivroActionPerformed
         // TODO add your handling code here:
+ 
         
-        cadLivro.dispose();
-        cadPessoa.dispose();
-        consultarPessoas.dispose();
-        
-        desktop.remove(consultarLivros);
-        desktop.remove(consultarPessoas);
-        desktop.remove(cadPessoa);
+        desktop.removeAll();
 
         cadLivro.setVisible(true);
         desktop.add(cadLivro);
@@ -139,13 +133,8 @@ public class Main extends javax.swing.JFrame {
 
     private void itmConsultarLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmConsultarLivroActionPerformed
         // TODO add your handling code here:
-        cadLivro.dispose();
-        cadPessoa.dispose();
-        consultarPessoas.dispose();
-        
-        desktop.remove(cadLivro);
-        desktop.remove(cadPessoa);
-        desktop.remove(consultarPessoas);
+
+        desktop.removeAll();
         
         consultarLivros.setVisible(true);
         desktop.add(consultarLivros);
@@ -153,33 +142,21 @@ public class Main extends javax.swing.JFrame {
 
     private void itmCadPessoaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmCadPessoaActionPerformed
         // TODO add your handling code here:
-       
-        cadLivro.dispose();
-        consultarLivros.dispose();
-        consultarPessoas.dispose();
+
         
-        desktop.remove(consultarLivros);
-        desktop.remove(consultarPessoas);
-        desktop.remove(cadPessoa);
+        desktop.removeAll();
         
         cadPessoa.setVisible(true);
-
         desktop.add(cadPessoa);
     }//GEN-LAST:event_itmCadPessoaActionPerformed
 
     private void itmConsultarPessoaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmConsultarPessoaActionPerformed
-        // TODO add your handling code here:
-               
-        cadLivro.dispose();
-        cadPessoa.dispose();
-        consultarLivros.dispose();
-        
-        desktop.remove(consultarLivros);
-        desktop.remove(cadPessoa);
-        desktop.remove(cadLivro);
-        
-        consultarPessoas.setVisible(true);
+        // TODO add your handling code here:           
 
+        
+        desktop.removeAll();
+
+        consultarPessoas.setVisible(true);
         desktop.add(consultarPessoas);
     }//GEN-LAST:event_itmConsultarPessoaActionPerformed
 
@@ -219,7 +196,7 @@ public class Main extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JDesktopPane desktop;
+    public static javax.swing.JDesktopPane desktop;
     private javax.swing.JMenuItem itmCadLivro;
     private javax.swing.JMenuItem itmCadPessoa;
     private javax.swing.JMenuItem itmConsultarLivro;

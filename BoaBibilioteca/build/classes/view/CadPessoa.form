@@ -36,26 +36,18 @@
                       <Component id="jLabel2" max="32767" attributes="0"/>
                       <EmptySpace min="694" pref="694" max="-2" attributes="0"/>
                   </Group>
-                  <Group type="103" alignment="2" groupAlignment="0" attributes="0">
-                      <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Group type="103" alignment="2" groupAlignment="2" attributes="0">
-                          <Component id="edtNome" alignment="2" max="32767" attributes="0"/>
-                          <Component id="edtCpf" alignment="2" max="32767" attributes="0"/>
-                      </Group>
+                  <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="edtNome" alignment="2" max="32767" attributes="0"/>
+                  <Component id="edtCpf" alignment="2" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="jLabel6" max="32767" attributes="0"/>
+                      <EmptySpace min="691" pref="691" max="-2" attributes="0"/>
                   </Group>
-                  <Group type="103" alignment="2" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
-                          <Component id="jLabel6" max="32767" attributes="0"/>
-                          <EmptySpace min="691" pref="691" max="-2" attributes="0"/>
-                      </Group>
-                      <Group type="103" alignment="2" groupAlignment="2" attributes="0">
-                          <Component id="edtDtNasc" alignment="2" max="32767" attributes="0"/>
-                          <Component id="edtRg" alignment="2" max="32767" attributes="0"/>
-                          <Component id="btnSalvar" alignment="2" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
+                  <Component id="edtDtNasc" alignment="2" max="32767" attributes="0"/>
+                  <Component id="edtRg" alignment="2" max="32767" attributes="0"/>
+                  <Component id="btnSalvar" alignment="2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="131" max="32767" attributes="0"/>
+              <EmptySpace pref="136" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -65,21 +57,21 @@
               <EmptySpace min="-2" pref="14" max="-2" attributes="0"/>
               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
-              <Component id="jLabel2" pref="20" max="32767" attributes="0"/>
+              <Component id="jLabel2" pref="21" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="edtCpf" pref="42" max="32767" attributes="0"/>
+              <Component id="edtCpf" pref="43" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jLabel3" min="-2" pref="20" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="edtNome" pref="42" max="32767" attributes="0"/>
+              <Component id="edtNome" pref="43" max="32767" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="jLabel4" pref="20" max="32767" attributes="0"/>
+              <Component id="jLabel4" pref="21" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="edtRg" pref="42" max="32767" attributes="0"/>
+              <Component id="edtRg" pref="43" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jLabel6" pref="20" max="32767" attributes="0"/>
+              <Component id="jLabel6" pref="24" max="32767" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="edtDtNasc" pref="42" max="32767" attributes="0"/>
+              <Component id="edtDtNasc" pref="43" max="32767" attributes="0"/>
               <EmptySpace min="-2" pref="44" max="-2" attributes="0"/>
               <Component id="btnSalvar" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="141" max="-2" attributes="0"/>
