@@ -10,14 +10,19 @@ package view;
  */
 public class Main extends javax.swing.JFrame {
 
-    ConsultarLivro consultarLivro = new ConsultarLivro();
+    ConsultarLivros consultarLivros = new ConsultarLivros();
+    ConsultarPessoas consultarPessoas = new ConsultarPessoas();
     CadLivro cadLivro = new CadLivro();
+    CadPessoa cadPessoa = new CadPessoa();
 
     /**
      * Creates new form Main
      */
     public Main() {
         initComponents();
+                
+        consultarLivros.setVisible(true);
+        desktop.add(consultarLivros);
     }
 
     /**
@@ -31,13 +36,16 @@ public class Main extends javax.swing.JFrame {
 
         desktop = new javax.swing.JDesktopPane();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        itemCadLivro = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
-        itemConsultaLivro = new javax.swing.JMenuItem();
+        menuCad = new javax.swing.JMenu();
+        itmCadLivro = new javax.swing.JMenuItem();
+        itmCadPessoa = new javax.swing.JMenuItem();
+        menuConsulta = new javax.swing.JMenu();
+        itmConsultarLivro = new javax.swing.JMenuItem();
+        itmConsultarPessoa = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Boa Biblioteca");
+        setResizable(false);
 
         desktop.setDragMode(javax.swing.JDesktopPane.OUTLINE_DRAG_MODE);
 
@@ -52,29 +60,53 @@ public class Main extends javax.swing.JFrame {
             .addGap(0, 631, Short.MAX_VALUE)
         );
 
-        jMenu1.setText("Cadastrar");
+        jMenuBar1.setToolTipText("c");
 
-        itemCadLivro.setText("Livro");
-        itemCadLivro.addActionListener(new java.awt.event.ActionListener() {
+        menuCad.setMnemonic('c');
+        menuCad.setText("Cadastrar");
+
+        itmCadLivro.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.ALT_DOWN_MASK));
+        itmCadLivro.setText("Livro");
+        itmCadLivro.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemCadLivroActionPerformed(evt);
+                itmCadLivroActionPerformed(evt);
             }
         });
-        jMenu1.add(itemCadLivro);
+        menuCad.add(itmCadLivro);
 
-        jMenuBar1.add(jMenu1);
-
-        jMenu2.setText("Consultar");
-
-        itemConsultaLivro.setText("Livros");
-        itemConsultaLivro.addActionListener(new java.awt.event.ActionListener() {
+        itmCadPessoa.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_M, java.awt.event.InputEvent.ALT_DOWN_MASK));
+        itmCadPessoa.setText("Solicitante");
+        itmCadPessoa.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemConsultaLivroActionPerformed(evt);
+                itmCadPessoaActionPerformed(evt);
             }
         });
-        jMenu2.add(itemConsultaLivro);
+        menuCad.add(itmCadPessoa);
 
-        jMenuBar1.add(jMenu2);
+        jMenuBar1.add(menuCad);
+
+        menuConsulta.setMnemonic('s');
+        menuConsulta.setText("Consultar");
+
+        itmConsultarLivro.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        itmConsultarLivro.setText("Livros");
+        itmConsultarLivro.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itmConsultarLivroActionPerformed(evt);
+            }
+        });
+        menuConsulta.add(itmConsultarLivro);
+
+        itmConsultarPessoa.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_M, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        itmConsultarPessoa.setText("Solicitantes");
+        itmConsultarPessoa.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itmConsultarPessoaActionPerformed(evt);
+            }
+        });
+        menuConsulta.add(itmConsultarPessoa);
+
+        jMenuBar1.add(menuConsulta);
 
         setJMenuBar(jMenuBar1);
 
@@ -93,19 +125,44 @@ public class Main extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void itemCadLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemCadLivroActionPerformed
+    private void itmCadLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmCadLivroActionPerformed
         // TODO add your handling code here:
-        desktop.remove(consultarLivro);
+ 
+        
+        desktop.removeAll();
+
         cadLivro.setVisible(true);
         desktop.add(cadLivro);
-    }//GEN-LAST:event_itemCadLivroActionPerformed
+    }//GEN-LAST:event_itmCadLivroActionPerformed
 
-    private void itemConsultaLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemConsultaLivroActionPerformed
+    private void itmConsultarLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmConsultarLivroActionPerformed
         // TODO add your handling code here:
-        desktop.remove(cadLivro);
-        consultarLivro.setVisible(true);
-        desktop.add(consultarLivro);
-    }//GEN-LAST:event_itemConsultaLivroActionPerformed
+
+        desktop.removeAll();
+        
+        consultarLivros.setVisible(true);
+        desktop.add(consultarLivros);
+    }//GEN-LAST:event_itmConsultarLivroActionPerformed
+
+    private void itmCadPessoaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmCadPessoaActionPerformed
+        // TODO add your handling code here:
+
+        
+        desktop.removeAll();
+        
+        cadPessoa.setVisible(true);
+        desktop.add(cadPessoa);
+    }//GEN-LAST:event_itmCadPessoaActionPerformed
+
+    private void itmConsultarPessoaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmConsultarPessoaActionPerformed
+        // TODO add your handling code here:           
+
+        
+        desktop.removeAll();
+
+        consultarPessoas.setVisible(true);
+        desktop.add(consultarPessoas);
+    }//GEN-LAST:event_itmConsultarPessoaActionPerformed
 
     /**
      * @param args the command line arguments
@@ -143,11 +200,13 @@ public class Main extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JDesktopPane desktop;
-    private javax.swing.JMenuItem itemCadLivro;
-    private javax.swing.JMenuItem itemConsultaLivro;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
+    public static javax.swing.JDesktopPane desktop;
+    public static javax.swing.JMenuItem itmCadLivro;
+    private javax.swing.JMenuItem itmCadPessoa;
+    public static javax.swing.JMenuItem itmConsultarLivro;
+    private javax.swing.JMenuItem itmConsultarPessoa;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenu menuCad;
+    private javax.swing.JMenu menuConsulta;
     // End of variables declaration//GEN-END:variables
 }

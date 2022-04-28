@@ -44,6 +44,7 @@ public class TelaLogin extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Login");
+        setResizable(false);
         getContentPane().setLayout(null);
 
         lblSenha.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -106,8 +107,9 @@ public class TelaLogin extends javax.swing.JFrame {
         jLabel1.setBounds(530, 440, 190, 20);
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/logo_iead.png"))); // NOI18N
         getContentPane().add(jLabel2);
-        jLabel2.setBounds(-3, -4, 500, 550);
+        jLabel2.setBounds(100, 80, 360, 280);
 
         lblImgProfile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/profile.png"))); // NOI18N
         getContentPane().add(lblImgProfile);
