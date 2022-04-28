@@ -215,34 +215,17 @@ public class CadLivro extends javax.swing.JInternalFrame {
     public Livro setarLivro() {
         livro = new Livro();
 
-        livro.setISBN(edtISBN.getText());
-        livro.setTitulo(edtTitulo.getText());
-        livro.setAutor(edtAutor.getText());
-        livro.setCategoria(edtCategoria.getText());
-        livro.setAno(jFormattedTextField1.getText());
-        livro.setEditora(edtEditora.getText());
-        verificaCamposVazios();
+        livro.setISBN(edtISBN.getText().trim());
+        livro.setTitulo(edtTitulo.getText().trim());
+        livro.setAutor(edtAutor.getText().trim());
+        livro.setCategoria(edtCategoria.getText().trim());
+        livro.setAno(jFormattedTextField1.getText().trim());
+        livro.setEditora(edtEditora.getText().trim());
 
         return livro;
     }
-
-    public void verificaCamposVazios() {
-        if (livro.getAutor().equals("")) {
-            livro.setAutor(null);
-        }
-        if (livro.getCategoria().equals("")) {
-            livro.setCategoria(null);
-        }
-        if (livro.getAno().equals("")) {
-            livro.setAno(null);
-        }
-        if (livro.getEditora().equals("")) {
-            livro.setEditora(null);
-        }
-    }
-
     private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
-        if (edtISBN.getText().equals("") || edtTitulo.getText().equals("")) {
+        if (edtISBN.getText().trim().isEmpty() || edtTitulo.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Preencha todos os campos obrigatórios");
             edtISBN.requestFocus();
             return;
@@ -271,9 +254,10 @@ public class CadLivro extends javax.swing.JInternalFrame {
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
         // TODO add your handling code here:
-        if (edtTitulo.getText().equals("")) {
+        if (edtTitulo.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Preencha todos os campos obrigatórios");
             edtTitulo.requestFocus();
+            limpar();
             return;
         }
         DAO dao = new DAO();

@@ -8,11 +8,14 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import dal.DAO;
-import java.awt.HeadlessException;
 import java.beans.PropertyVetoException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.entities.Livro;
+import net.proteanit.sql.DbUtils;
+import java.sql.ResultSet;
 
 /**
  *
@@ -70,6 +73,7 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
         btnEditar = new javax.swing.JButton();
         btnExcluir = new javax.swing.JButton();
         btnNovo = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
 
         setPreferredSize(new java.awt.Dimension(1193, 600));
         setVisible(true);
@@ -100,9 +104,17 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
             }
         });
         tblLivros.setName(""); // NOI18N
+        tblLivros.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tblLivros.getTableHeader().setReorderingAllowed(false);
         jScrollPane.setViewportView(tblLivros);
 
+        txtPesquisar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtPesquisarKeyReleased(evt);
+            }
+        });
+
+        lblPesquisar.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         lblPesquisar.setText("Pesquisar:");
 
         btnEditar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/edit.png"))); // NOI18N
@@ -135,43 +147,48 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
             }
         });
 
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/search.png"))); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1191, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(91, 91, 91)
-                .addComponent(lblPesquisar)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(341, 341, 341)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblPesquisar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(txtPesquisar, javax.swing.GroupLayout.PREFERRED_SIZE, 394, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel1))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 237, Short.MAX_VALUE)
-                        .addComponent(btnNovo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(89, 89, 89)
-                        .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(108, 108, 108)
-                        .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(357, 357, 357))))
+                        .addComponent(btnNovo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(134, 134, 134)
+                        .addComponent(btnEditar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(134, 134, 134)
+                        .addComponent(btnExcluir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGap(357, 357, 357))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(23, 23, 23)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(txtPesquisar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblPesquisar))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnNovo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
+
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jLabel1, lblPesquisar, txtPesquisar});
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -190,9 +207,7 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
             livro.setTitulo((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 1));
             livro.setAutor((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 2));
             livro.setCategoria((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 3));
-            System.out.println(livro.getCategoria());
             livro.setAno((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 4));
-            System.out.println(livro.getAno());
             livro.setEditora((String) tblLivros.getValueAt(tblLivros.getSelectedRow(), 5));
 
             CadLivro cdLi = new CadLivro(livro);
@@ -214,7 +229,7 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
 
             int confirmacao = JOptionPane.showConfirmDialog(null, "Deseja Realmente Excluir o Livro abaixo?"
                     + "\nISBN: " + isbn + "\nTítulo: " + titulo, "Atenção", JOptionPane.YES_NO_OPTION);
-            if (confirmacao == 0) {
+            if (confirmacao == JOptionPane.YES_OPTION) {
                 DAO dao = new DAO();
                 if (dao.conectar()) {
                     int status = dao.excluirLivro(isbn);
@@ -241,11 +256,24 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
         Main.itmCadLivro.doClick();
     }//GEN-LAST:event_btnNovoActionPerformed
 
+    private void txtPesquisarKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtPesquisarKeyReleased
+        // TODO add your handling code here:
+        DAO dao = new DAO();
+        if (dao.conectar()) {
+            ResultSet res = dao.pesquisarLivro(txtPesquisar.getText());
+            tblLivros.setModel(DbUtils.resultSetToTableModel(res));
+            dao.desconectar();
+        } else {
+            JOptionPane.showMessageDialog(null, "Erro ao conectar com o banco de dados");
+        }
+    }//GEN-LAST:event_txtPesquisarKeyReleased
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEditar;
     private javax.swing.JButton btnExcluir;
     private javax.swing.JButton btnNovo;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane;
     private javax.swing.JLabel lblPesquisar;
     private javax.swing.JTable tblLivros;

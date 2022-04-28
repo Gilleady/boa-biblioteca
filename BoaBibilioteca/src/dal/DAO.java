@@ -7,12 +7,10 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import model.entities.Livro;
 import model.entities.Pessoa;
 import model.entities.Usuario;
-
 public class DAO {
 
     private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
@@ -133,7 +131,6 @@ public class DAO {
                 livro.setEditora(res.getString("editora"));
 
                 lista.add(livro);
-                System.out.println(lista);
             }
             return lista;
 
@@ -143,25 +140,16 @@ public class DAO {
     }
 
     //A CONCLUIR - PARA PESQUISA PELA BARRA
-    public Livro consultarLivro(String ISBN) {
+    public ResultSet pesquisarLivro(String pesquisa) {
         try {
-            Livro livro = new Livro();
-            st = conn.prepareStatement("SELECT * FROM livro WHERE ISBN LIKE ?%");
-            st.setString(1, ISBN);
+            st = conn.prepareStatement("SELECT * FROM livro WHERE isbn LIKE ? OR nome LIKE ?");
+            st.setString(1, pesquisa + "%");
+            st.setString(2, pesquisa + "%");
             res = st.executeQuery();
-            //verifica se a consulta encontrou o registro com o identificador informado
-            if (res.next()) {
-                livro.setISBN(res.getString("isbn"));
-                livro.setTitulo(res.getString("nome"));
-                livro.setAutor(res.getString("autor"));
-                livro.setCategoria(res.getString("categoria"));
-                livro.setAno(res.getString("ano"));
-                livro.setEditora(res.getString("editora"));
-                return livro;
-            } else {
-                return null;
-            }
+            return res;
+
         } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, ex);
             return null;
         }
     }
@@ -210,7 +198,6 @@ public class DAO {
                 p.setRg(res.getString("rg"));
 
                 lista.add(p);
-                System.out.println(lista);
             }
             return lista;
 

@@ -37,16 +37,6 @@
               </Group>
               <EmptySpace min="-2" pref="227" max="-2" attributes="0"/>
           </Group>
-          <Group type="102" alignment="2" attributes="0">
-              <EmptySpace min="542" pref="542" max="-2" attributes="0"/>
-              <Component id="btnSalvar" min="-2" pref="96" max="-2" attributes="0"/>
-              <EmptySpace min="543" pref="543" max="-2" attributes="0"/>
-          </Group>
-          <Group type="102" alignment="2" attributes="0">
-              <EmptySpace min="493" pref="493" max="-2" attributes="0"/>
-              <Component id="jLabel1" max="-2" attributes="0"/>
-              <EmptySpace min="493" pref="493" max="-2" attributes="0"/>
-          </Group>
           <Group type="102" attributes="0">
               <EmptySpace min="227" pref="227" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
@@ -58,6 +48,14 @@
                   <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
+          </Group>
+          <Group type="102" alignment="2" attributes="0">
+              <EmptySpace min="-2" pref="493" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="btnSalvar" alignment="2" min="-2" pref="96" max="-2" attributes="0"/>
+                  <Component id="jLabel1" alignment="2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="493" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
