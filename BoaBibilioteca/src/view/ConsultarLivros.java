@@ -151,7 +151,7 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/search.png"))); // NOI18N
 
         btnEmprestar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/loan.png"))); // NOI18N
-        btnEmprestar.setToolTipText("Editar");
+        btnEmprestar.setToolTipText("Emprestar");
         btnEmprestar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnEmprestar.setPreferredSize(new java.awt.Dimension(70, 70));
         btnEmprestar.addActionListener(new java.awt.event.ActionListener() {
