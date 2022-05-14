@@ -5,11 +5,11 @@
 package view;
 
 import javax.swing.JOptionPane;
-import dal.DAO;
+import model.DAO;
 import java.beans.PropertyVetoException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import model.entities.Pessoa;
+import model.Pessoa;
 
 /**
  *

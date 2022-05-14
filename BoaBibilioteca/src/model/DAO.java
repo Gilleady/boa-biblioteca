@@ -1,4 +1,4 @@
-package dal;
+package model;
 
 import java.sql.PreparedStatement;
 import java.sql.Connection;
@@ -7,10 +7,9 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JOptionPane;
-import model.entities.Livro;
-import model.entities.Pessoa;
-import model.entities.Usuario;
+import model.Livro;
+import model.Pessoa;
+import model.Usuario;
 public class DAO {
 
     private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
@@ -122,13 +121,15 @@ public class DAO {
             //verifica se a consulta encontrou o registro com o identificador informado
 
             while (res.next()) {
-                Livro livro = new Livro();
-                livro.setISBN(res.getString("isbn"));
-                livro.setTitulo(res.getString("nome"));
-                livro.setAutor(res.getString("autor"));
-                livro.setCategoria(res.getString("categoria"));
-                livro.setAno(res.getString("ano"));
-                livro.setEditora(res.getString("editora"));
+                Livro livro = new Livro(
+                        res.getString("isbn"), 
+                        res.getString("nome"), 
+                        res.getString("autor"), 
+                        res.getString("categoria"),
+                        res.getString("ano"),
+                        res.getString("editora"),
+                        res.getInt("qtd_copias")
+                );
 
                 lista.add(livro);
             }
@@ -139,17 +140,31 @@ public class DAO {
         }
     }
 
-    //A CONCLUIR - PARA PESQUISA PELA BARRA
-    public ResultSet pesquisarLivro(String pesquisa) {
+    public List<Livro> pesquisarLivro(String pesquisa) {
         try {
+            List<Livro> lista = new ArrayList<>();
             st = conn.prepareStatement("SELECT * FROM livro WHERE isbn LIKE ? OR nome LIKE ?");
             st.setString(1, pesquisa + "%");
             st.setString(2, pesquisa + "%");
             res = st.executeQuery();
-            return res;
+            //verifica se a consulta encontrou o registro com o identificador informado
+
+            while (res.next()) {
+                Livro livro = new Livro(
+                        res.getString("isbn"), 
+                        res.getString("nome"), 
+                        res.getString("autor"), 
+                        res.getString("categoria"),
+                        res.getString("ano"),
+                        res.getString("editora"),
+                        res.getInt("qtd_copias")
+                );
+
+                lista.add(livro);
+            }
+            return lista;
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, ex);
             return null;
         }
     }

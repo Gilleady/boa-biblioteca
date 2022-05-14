@@ -7,11 +7,11 @@ package view;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import dal.DAO;
+import model.DAO;
 import java.beans.PropertyVetoException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import model.entities.Pessoa;
+import model.Pessoa;
 
 /**
  *

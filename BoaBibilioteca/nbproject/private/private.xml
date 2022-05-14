@@ -2,21 +2,17 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group/>
         <group>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/view/CadPessoa.java</file>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/view/Main.java</file>
+            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/controller/LivroController.java</file>
+            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/model/LivroDAO.java</file>
+            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/model/Livro.java</file>
             <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/view/ConsultarLivros.java</file>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/dal/DAO.java</file>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/model/entities/Livro.java</file>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/view/CadLivro.java</file>
-        </group>
-        <group>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/view/CadPessoa.java</file>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/view/Main.java</file>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/view/ConsultarLivros.java</file>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/dal/DAO.java</file>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/model/entities/Livro.java</file>
-            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/view/CadLivro.java</file>
+            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/controller/PessoaController.java</file>
+            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/model/DAO.java</file>
+            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/model/PessoaDAO.java</file>
+            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/controller/UsuarioController.java</file>
+            <file>file:/C:/Users/gille/OneDrive/Documentos/NetBeansProjects/boa-biblioteca/BoaBibilioteca/src/model/UsuarioDAO.java</file>
         </group>
     </open-files>
 </project-private>

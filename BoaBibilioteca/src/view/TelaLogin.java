@@ -4,8 +4,8 @@
  */
 package view;
 
-import dal.DAO;
-import model.entities.Usuario;
+import model.DAO;
+import model.Usuario;
 import javax.swing.JOptionPane;
 
 /**
