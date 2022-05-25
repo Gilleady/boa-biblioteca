@@ -35,10 +35,15 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
         }
     }
 
-    public void listar() {
+    public void listar(String pesquisa) {
         DAO dao = new DAO();
         if (dao.conectar()) {
-            List<Livro> lista = dao.listarLivros();
+            List<Livro> lista;
+            if (pesquisa == null) {
+                lista = dao.listarLivros();
+            } else {
+                lista = dao.pesquisarLivro(pesquisa);
+            }
             DefaultTableModel dados = (DefaultTableModel) tblLivros.getModel();
             dados.setNumRows(0);
             for (Livro l : lista) {
@@ -48,7 +53,8 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
                     l.getAutor(),
                     l.getCategoria(),
                     l.getAno(),
-                    l.getEditora()
+                    l.getEditora(),
+                    l.getQtdCopias()
                 });
             }
             dao.desconectar();
@@ -93,11 +99,11 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
 
             },
             new String [] {
-                "ISBN", "Título", "Autor", "Categoria", "Ano", "Editora"
+                "ISBN", "Título", "Autor", "Categoria", "Ano", "Editora", "Cópias"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false
+                false, false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -153,7 +159,6 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
         btnEmprestar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/loan.png"))); // NOI18N
         btnEmprestar.setToolTipText("Emprestar");
         btnEmprestar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnEmprestar.setPreferredSize(new java.awt.Dimension(70, 70));
         btnEmprestar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnEmprestarActionPerformed(evt);
@@ -170,7 +175,7 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btnNovo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(60, 60, 60)
-                        .addComponent(btnEmprestar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnEmprestar)
                         .addGap(60, 60, 60)
                         .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(60, 60, 60)
@@ -198,7 +203,7 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(btnNovo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnEmprestar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEmprestar)
                     .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -212,7 +217,7 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
 
     private void formAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_formAncestorAdded
         // TODO add your handling code here:
-        this.listar();
+        this.listar(txtPesquisar.getText());
     }//GEN-LAST:event_formAncestorAdded
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
@@ -275,14 +280,7 @@ public class ConsultarLivros extends javax.swing.JInternalFrame {
 
     private void txtPesquisarKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtPesquisarKeyReleased
         // TODO add your handling code here:
-        DAO dao = new DAO();
-        if (dao.conectar()) {
-            ResultSet res = dao.pesquisarLivro(txtPesquisar.getText());
-            tblLivros.setModel(DbUtils.resultSetToTableModel(res));
-            dao.desconectar();
-        } else {
-            JOptionPane.showMessageDialog(null, "Erro ao conectar com o banco de dados");
-        }
+        this.listar(txtPesquisar.getText());
     }//GEN-LAST:event_txtPesquisarKeyReleased
 
     private void btnEmprestarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEmprestarActionPerformed
