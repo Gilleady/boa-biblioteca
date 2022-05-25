@@ -14,6 +14,7 @@ public class Main extends javax.swing.JFrame {
     ConsultarPessoas consultarPessoas = new ConsultarPessoas();
     CadLivro cadLivro = new CadLivro();
     CadPessoa cadPessoa = new CadPessoa();
+    Emprestar emprestar = new Emprestar();
 
     /**
      * Creates new form Main
@@ -42,6 +43,8 @@ public class Main extends javax.swing.JFrame {
         menuConsulta = new javax.swing.JMenu();
         itmConsultarLivro = new javax.swing.JMenuItem();
         itmConsultarPessoa = new javax.swing.JMenuItem();
+        menuEmprestar = new javax.swing.JMenu();
+        itmNovoEmp = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Boa Biblioteca");
@@ -108,6 +111,20 @@ public class Main extends javax.swing.JFrame {
 
         jMenuBar1.add(menuConsulta);
 
+        menuEmprestar.setMnemonic('s');
+        menuEmprestar.setText("Emprestar");
+
+        itmNovoEmp.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        itmNovoEmp.setText("Efetuar Empréstimo");
+        itmNovoEmp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itmNovoEmpActionPerformed(evt);
+            }
+        });
+        menuEmprestar.add(itmNovoEmp);
+
+        jMenuBar1.add(menuEmprestar);
+
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -164,6 +181,15 @@ public class Main extends javax.swing.JFrame {
         desktop.add(consultarPessoas);
     }//GEN-LAST:event_itmConsultarPessoaActionPerformed
 
+    private void itmNovoEmpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmNovoEmpActionPerformed
+        // TODO add your handling code here:
+                
+        desktop.removeAll();
+
+        emprestar.setVisible(true);
+        desktop.add(emprestar);
+    }//GEN-LAST:event_itmNovoEmpActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -205,8 +231,10 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JMenuItem itmCadPessoa;
     public static javax.swing.JMenuItem itmConsultarLivro;
     private javax.swing.JMenuItem itmConsultarPessoa;
+    public static javax.swing.JMenuItem itmNovoEmp;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu menuCad;
     private javax.swing.JMenu menuConsulta;
+    private javax.swing.JMenu menuEmprestar;
     // End of variables declaration//GEN-END:variables
 }

@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JOptionPane;
 import model.entities.Livro;
 import model.entities.Pessoa;
 import model.entities.Usuario;
@@ -218,6 +217,27 @@ public class DAO {
             }
             return lista;
 
+        } catch (SQLException ex) {
+            return null;
+        }
+    }
+        public Pessoa consultar(String cpf) {
+        try {
+            st = conn.prepareStatement("SELECT * FROM cliente WHERE cpf = ?");
+            st.setString(1, cpf);
+            res = st.executeQuery();
+
+            Pessoa p;
+            p = new Pessoa();
+            if (res.next()) {
+                p.setCpf(res.getString("cpf"));
+                p.setNome(res.getString("nome"));
+                p.setRg(res.getString("rg"));
+//                p.setDtValidade(res.getString("dtValidade"));
+                return p;
+            } else {
+                return null;
+            }
         } catch (SQLException ex) {
             return null;
         }
