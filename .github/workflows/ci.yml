@@ -35,3 +35,11 @@ jobs:
       - name: Pytest
         working-directory: apps/api
         run: uv run pytest
+
+      - name: Mypy
+        working-directory: apps/api
+        run: uv run mypy app tests
+
+      - name: Alembic heads
+        working-directory: apps/api
+        run: uv run alembic heads
