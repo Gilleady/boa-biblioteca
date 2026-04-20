@@ -18,6 +18,14 @@ class Settings(BaseSettings):
         validation_alias="DATABASE_URL",
     )
 
+    # JWT Configuration
+    jwt_secret_key: str = Field(
+        default="dev-secret-key-change-in-production",
+        validation_alias="JWT_SECRET_KEY",
+    )
+    jwt_algorithm: str = "HS256"
+    jwt_expiration_minutes: int = 30
+
 
 @lru_cache
 def get_settings() -> Settings:
