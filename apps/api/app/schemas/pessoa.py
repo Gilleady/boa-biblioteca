@@ -1,0 +1,33 @@
+from __future__ import annotations
+
+from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.schemas.common import PaginatedResponse
+
+
+class PessoaBase(BaseModel):
+    nome: str = Field(min_length=1, max_length=255)
+    email: str = Field(min_length=3, max_length=255)
+
+
+class PessoaCreate(PessoaBase):
+    pass
+
+
+class PessoaUpdate(BaseModel):
+    nome: str | None = Field(default=None, min_length=1, max_length=255)
+    email: str | None = Field(default=None, min_length=3, max_length=255)
+
+
+class PessoaRead(PessoaBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    created_at: datetime
+
+
+class PessoaListResponse(PaginatedResponse[PessoaRead]):
+    pass
