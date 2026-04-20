@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppError
+from app.core.security import hash_password
 from app.models.usuario import Usuario
 from app.schemas.usuario import UsuarioCreate, UsuarioUpdate
 
@@ -47,7 +48,10 @@ class UsuarioRepository:
         return result.scalar_one_or_none()
 
     async def create(self, payload: UsuarioCreate) -> Usuario:
-        usuario = Usuario(**payload.model_dump())
+        data = payload.model_dump()
+        # Hash the senha before storing
+        data["senha_hash"] = hash_password(data.pop("senha"))
+        usuario = Usuario(**data)
         self._session.add(usuario)
 
         try:
@@ -66,7 +70,11 @@ class UsuarioRepository:
 
     async def update(self, usuario: Usuario, payload: UsuarioUpdate) -> Usuario:
         for field, value in payload.model_dump(exclude_unset=True).items():
-            setattr(usuario, field, value)
+            # Hash the senha if it's being updated
+            if field == "senha" and value is not None:
+                usuario.senha_hash = hash_password(value)
+            else:
+                setattr(usuario, field, value)
 
         try:
             await self._session.commit()

@@ -15,13 +15,13 @@ class UsuarioBase(BaseModel):
 
 
 class UsuarioCreate(UsuarioBase):
-    senha_hash: str = Field(min_length=1, max_length=255)
+    senha: str = Field(min_length=1, max_length=255)
 
 
 class UsuarioUpdate(BaseModel):
     pessoa_id: UUID | None = None
     username: str | None = Field(default=None, min_length=3, max_length=80)
-    senha_hash: str | None = Field(default=None, min_length=1, max_length=255)
+    senha: str | None = Field(default=None, min_length=1, max_length=255)
     ativo: bool | None = None
 
 

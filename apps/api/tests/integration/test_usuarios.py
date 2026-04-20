@@ -15,7 +15,7 @@ async def test_create_and_get_usuario(client: AsyncClient) -> None:
         json={
             "pessoa_id": pessoa_id,
             "username": "pessoabase",
-            "senha_hash": "hash-123",
+            "senha": "hash-123",
             "ativo": True,
         },
     )
@@ -39,7 +39,7 @@ async def test_create_usuario_fails_if_pessoa_not_found(client: AsyncClient) -> 
         json={
             "pessoa_id": "f732ca0d-ea89-4b6d-84ad-ec18eea12c5f",
             "username": "sem_pessoa",
-            "senha_hash": "hash-404",
+            "senha": "hash-404",
             "ativo": True,
         },
     )
@@ -69,7 +69,7 @@ async def test_create_usuario_conflict_for_duplicate_username(
         json={
             "pessoa_id": pessoa_a_id,
             "username": "duplicado",
-            "senha_hash": "hash-1",
+            "senha": "hash-1",
             "ativo": True,
         },
     )
@@ -80,7 +80,7 @@ async def test_create_usuario_conflict_for_duplicate_username(
         json={
             "pessoa_id": pessoa_b_id,
             "username": "duplicado",
-            "senha_hash": "hash-2",
+            "senha": "hash-2",
             "ativo": True,
         },
     )
@@ -101,7 +101,7 @@ async def test_update_and_delete_usuario(client: AsyncClient) -> None:
         json={
             "pessoa_id": pessoa_id,
             "username": "usuario.u",
-            "senha_hash": "hash-u",
+            "senha": "hash-u",
             "ativo": True,
         },
     )
@@ -140,7 +140,7 @@ async def test_list_usuarios_supports_filters(client: AsyncClient) -> None:
         json={
             "pessoa_id": pessoa_a_response.json()["id"],
             "username": "alpha_user",
-            "senha_hash": "hash-a",
+            "senha": "hash-a",
             "ativo": True,
         },
     )
@@ -149,7 +149,7 @@ async def test_list_usuarios_supports_filters(client: AsyncClient) -> None:
         json={
             "pessoa_id": pessoa_b_response.json()["id"],
             "username": "beta_user",
-            "senha_hash": "hash-b",
+            "senha": "hash-b",
             "ativo": False,
         },
     )
@@ -179,7 +179,7 @@ async def test_update_usuario_with_empty_payload_returns_bad_request(
         json={
             "pessoa_id": pessoa_response.json()["id"],
             "username": "vazio",
-            "senha_hash": "hash-v",
+            "senha": "hash-v",
             "ativo": True,
         },
     )
