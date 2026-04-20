@@ -59,3 +59,45 @@ uv run mypy app tests
 - `apps/api/app/core` para configurações e peças transversais
 - `apps/api/app/db` para engine, sessão e base ORM
 - `apps/api/alembic` para migrations
+
+## Endpoints iniciais (API v1)
+
+Base: `http://localhost:8000/api/v1`
+
+- `GET /livros` com paginação e filtros: `titulo`, `autor`, `ano_publicacao`, `disponivel`, `order_by`, `order_direction`
+- `GET /livros/{id}`
+- `POST /livros`
+- `PATCH /livros/{id}`
+- `DELETE /livros/{id}`
+- `GET /pessoas` com paginação e filtros: `nome`, `email`
+- `GET /pessoas/{id}`
+- `POST /pessoas`
+- `PATCH /pessoas/{id}`
+- `DELETE /pessoas/{id}`
+- `GET /usuarios` com paginação e filtros: `username`, `ativo`
+- `GET /usuarios/{id}`
+- `POST /usuarios`
+- `PATCH /usuarios/{id}`
+- `DELETE /usuarios/{id}`
+
+Exemplo de listagem de livros com filtros:
+
+```bash
+curl "http://localhost:8000/api/v1/livros?autor=Martin&ano_publicacao=2011&order_by=titulo&order_direction=asc"
+```
+
+Exemplo de criação de pessoa:
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/pessoas" \
+	-H "Content-Type: application/json" \
+	-d '{"nome":"Ada Lovelace","email":"ada@example.com"}'
+```
+
+Exemplo de criação de usuário:
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/usuarios" \
+	-H "Content-Type: application/json" \
+	-d '{"pessoa_id":"<UUID_DA_PESSOA>","username":"adal","senha_hash":"hash","ativo":true}'
+```
