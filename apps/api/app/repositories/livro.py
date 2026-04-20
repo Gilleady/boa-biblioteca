@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from typing import Literal
 from uuid import UUID
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, asc, desc, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,12 +22,22 @@ class LivroRepository:
         page: int,
         page_size: int,
         titulo: str | None,
+        autor: str | None,
+        ano_publicacao: int | None,
         disponivel: bool | None,
+        order_by: Literal["created_at", "titulo", "ano_publicacao"],
+        order_direction: Literal["asc", "desc"],
     ) -> tuple[list[Livro], int]:
         stmt: Select[tuple[Livro]] = select(Livro)
 
         if titulo:
             stmt = stmt.where(Livro.titulo.ilike(f"%{titulo}%"))
+
+        if autor:
+            stmt = stmt.where(Livro.autor.ilike(f"%{autor}%"))
+
+        if ano_publicacao is not None:
+            stmt = stmt.where(Livro.ano_publicacao == ano_publicacao)
 
         if disponivel is not None:
             stmt = stmt.where(Livro.disponivel.is_(disponivel))
@@ -34,7 +45,15 @@ class LivroRepository:
         count_stmt = select(func.count()).select_from(stmt.subquery())
         total = int((await self._session.execute(count_stmt)).scalar_one())
 
-        stmt = stmt.order_by(Livro.created_at.desc())
+        order_column = {
+            "created_at": Livro.created_at,
+            "titulo": Livro.titulo,
+            "ano_publicacao": Livro.ano_publicacao,
+        }[order_by]
+        order_expression = (
+            asc(order_column) if order_direction == "asc" else desc(order_column)
+        )
+        stmt = stmt.order_by(order_expression)
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
 
         result = await self._session.execute(stmt)

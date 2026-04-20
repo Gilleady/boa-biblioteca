@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response, status
@@ -25,14 +26,22 @@ async def list_livros(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     titulo: str | None = Query(default=None, min_length=1, max_length=255),
+    autor: str | None = Query(default=None, min_length=1, max_length=255),
+    ano_publicacao: int | None = Query(default=None, ge=0, le=2100),
     disponivel: bool | None = None,
+    order_by: Literal["created_at", "titulo", "ano_publicacao"] = "created_at",
+    order_direction: Literal["asc", "desc"] = "desc",
     service: LivroService = Depends(get_livro_service),
 ) -> LivroListResponse:
     return await service.list(
         page=page,
         page_size=page_size,
         titulo=titulo,
+        autor=autor,
+        ano_publicacao=ano_publicacao,
         disponivel=disponivel,
+        order_by=order_by,
+        order_direction=order_direction,
     )
 
 

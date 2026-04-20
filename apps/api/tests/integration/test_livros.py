@@ -154,3 +154,68 @@ async def test_validation_error_payload_shape(client: AsyncClient) -> None:
     assert body["error"]["code"] == "validation_error"
     assert body["error"]["message"] == "Request validation failed"
     assert isinstance(body["error"]["details"], list)
+
+
+@pytest.mark.asyncio
+async def test_list_livros_supports_author_year_and_ordering(
+    client: AsyncClient,
+) -> None:
+    await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "Algorithms",
+            "autor": "Sedgewick",
+            "isbn": "9780321573513",
+            "ano_publicacao": 2011,
+            "disponivel": True,
+        },
+    )
+    await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "Clean Code",
+            "autor": "Robert C. Martin",
+            "isbn": "9780132350884",
+            "ano_publicacao": 2008,
+            "disponivel": True,
+        },
+    )
+    await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "Agile Software Development",
+            "autor": "Robert C. Martin",
+            "isbn": "9780135974445",
+            "ano_publicacao": 2011,
+            "disponivel": True,
+        },
+    )
+
+    filtered_response = await client.get(
+        "/api/v1/livros",
+        params={
+            "autor": "Martin",
+            "ano_publicacao": 2011,
+            "order_by": "titulo",
+            "order_direction": "asc",
+        },
+    )
+
+    assert filtered_response.status_code == 200
+    filtered_body = filtered_response.json()
+    assert filtered_body["total"] == 1
+    assert filtered_body["items"][0]["titulo"] == "Agile Software Development"
+
+    ordered_response = await client.get(
+        "/api/v1/livros",
+        params={
+            "autor": "Martin",
+            "order_by": "titulo",
+            "order_direction": "desc",
+        },
+    )
+    assert ordered_response.status_code == 200
+    ordered_items = ordered_response.json()["items"]
+    assert len(ordered_items) == 2
+    assert ordered_items[0]["titulo"] == "Clean Code"
+    assert ordered_items[1]["titulo"] == "Agile Software Development"

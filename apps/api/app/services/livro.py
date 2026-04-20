@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Literal
 from uuid import UUID
 
 from app.core.exceptions import AppError
@@ -17,13 +18,21 @@ class LivroService:
         page: int,
         page_size: int,
         titulo: str | None,
+        autor: str | None,
+        ano_publicacao: int | None,
         disponivel: bool | None,
+        order_by: Literal["created_at", "titulo", "ano_publicacao"],
+        order_direction: Literal["asc", "desc"],
     ) -> LivroListResponse:
         livros, total = await self._repository.list(
             page=page,
             page_size=page_size,
             titulo=titulo,
+            autor=autor,
+            ano_publicacao=ano_publicacao,
             disponivel=disponivel,
+            order_by=order_by,
+            order_direction=order_direction,
         )
 
         return LivroListResponse(
