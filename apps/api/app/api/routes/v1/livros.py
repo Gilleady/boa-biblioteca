@@ -6,8 +6,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_current_usuario
 from app.core.exceptions import AppError
 from app.db.session import get_async_session
+from app.models.usuario import Usuario
 from app.repositories.livro import LivroRepository
 from app.schemas.livro import LivroCreate, LivroListResponse, LivroRead, LivroUpdate
 from app.services.livro import LivroService
@@ -57,6 +59,7 @@ async def get_livro(
 async def create_livro(
     payload: LivroCreate,
     service: LivroService = Depends(get_livro_service),
+    _: Usuario = Depends(get_current_usuario),
 ) -> LivroRead:
     return await service.create(payload)
 
@@ -66,6 +69,7 @@ async def update_livro(
     livro_id: UUID,
     payload: LivroUpdate,
     service: LivroService = Depends(get_livro_service),
+    _: Usuario = Depends(get_current_usuario),
 ) -> LivroRead:
     if not payload.model_dump(exclude_unset=True):
         raise AppError(
@@ -81,6 +85,7 @@ async def update_livro(
 async def delete_livro(
     livro_id: UUID,
     service: LivroService = Depends(get_livro_service),
+    _: Usuario = Depends(get_current_usuario),
 ) -> Response:
     await service.delete(livro_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

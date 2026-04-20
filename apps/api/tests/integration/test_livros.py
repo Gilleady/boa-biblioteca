@@ -2,8 +2,37 @@ import pytest
 from httpx import AsyncClient
 
 
+async def _auth_headers(client: AsyncClient, suffix: str) -> dict[str, str]:
+    pessoa_response = await client.post(
+        "/api/v1/pessoas",
+        json={"nome": f"Auth {suffix}", "email": f"auth.{suffix}@example.com"},
+    )
+    pessoa_id = pessoa_response.json()["id"]
+
+    usuario_response = await client.post(
+        "/api/v1/usuarios",
+        json={
+            "pessoa_id": pessoa_id,
+            "username": f"auth_{suffix}",
+            "senha": "securepass123",
+            "ativo": True,
+        },
+    )
+    assert usuario_response.status_code == 201
+
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={"username": f"auth_{suffix}", "senha": "securepass123"},
+    )
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
 @pytest.mark.asyncio
 async def test_create_and_get_livro(client: AsyncClient) -> None:
+    headers = await _auth_headers(client, "create_and_get")
+
     payload = {
         "titulo": "Clean Architecture",
         "autor": "Robert C. Martin",
@@ -12,7 +41,7 @@ async def test_create_and_get_livro(client: AsyncClient) -> None:
         "disponivel": True,
     }
 
-    create_response = await client.post("/api/v1/livros", json=payload)
+    create_response = await client.post("/api/v1/livros", json=payload, headers=headers)
     assert create_response.status_code == 201
 
     created = create_response.json()
@@ -27,6 +56,8 @@ async def test_create_and_get_livro(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_list_livros_supports_pagination_and_filters(client: AsyncClient) -> None:
+    headers = await _auth_headers(client, "list_filters")
+
     await client.post(
         "/api/v1/livros",
         json={
@@ -36,6 +67,7 @@ async def test_list_livros_supports_pagination_and_filters(client: AsyncClient) 
             "ano_publicacao": 2003,
             "disponivel": True,
         },
+        headers=headers,
     )
     await client.post(
         "/api/v1/livros",
@@ -46,6 +78,7 @@ async def test_list_livros_supports_pagination_and_filters(client: AsyncClient) 
             "ano_publicacao": 1999,
             "disponivel": False,
         },
+        headers=headers,
     )
 
     response = await client.get(
@@ -64,6 +97,8 @@ async def test_list_livros_supports_pagination_and_filters(client: AsyncClient) 
 
 @pytest.mark.asyncio
 async def test_update_and_delete_livro(client: AsyncClient) -> None:
+    headers = await _auth_headers(client, "update_delete")
+
     create_response = await client.post(
         "/api/v1/livros",
         json={
@@ -73,19 +108,21 @@ async def test_update_and_delete_livro(client: AsyncClient) -> None:
             "ano_publicacao": 1999,
             "disponivel": True,
         },
+        headers=headers,
     )
     livro_id = create_response.json()["id"]
 
     update_response = await client.patch(
         f"/api/v1/livros/{livro_id}",
         json={"disponivel": False, "autor": "Dave Thomas"},
+        headers=headers,
     )
     assert update_response.status_code == 200
     updated = update_response.json()
     assert updated["disponivel"] is False
     assert updated["autor"] == "Dave Thomas"
 
-    delete_response = await client.delete(f"/api/v1/livros/{livro_id}")
+    delete_response = await client.delete(f"/api/v1/livros/{livro_id}", headers=headers)
     assert delete_response.status_code == 204
 
     not_found_response = await client.get(f"/api/v1/livros/{livro_id}")
@@ -97,6 +134,8 @@ async def test_update_and_delete_livro(client: AsyncClient) -> None:
 async def test_create_livro_returns_conflict_for_duplicate_isbn(
     client: AsyncClient,
 ) -> None:
+    headers = await _auth_headers(client, "duplicate_isbn")
+
     payload = {
         "titulo": "Patterns of Enterprise Application Architecture",
         "autor": "Martin Fowler",
@@ -105,10 +144,10 @@ async def test_create_livro_returns_conflict_for_duplicate_isbn(
         "disponivel": True,
     }
 
-    first_response = await client.post("/api/v1/livros", json=payload)
+    first_response = await client.post("/api/v1/livros", json=payload, headers=headers)
     assert first_response.status_code == 201
 
-    second_response = await client.post("/api/v1/livros", json=payload)
+    second_response = await client.post("/api/v1/livros", json=payload, headers=headers)
     assert second_response.status_code == 409
 
     body = second_response.json()
@@ -119,6 +158,8 @@ async def test_create_livro_returns_conflict_for_duplicate_isbn(
 async def test_update_livro_with_empty_payload_returns_bad_request(
     client: AsyncClient,
 ) -> None:
+    headers = await _auth_headers(client, "empty_payload")
+
     create_response = await client.post(
         "/api/v1/livros",
         json={
@@ -128,16 +169,23 @@ async def test_update_livro_with_empty_payload_returns_bad_request(
             "ano_publicacao": 2004,
             "disponivel": True,
         },
+        headers=headers,
     )
     livro_id = create_response.json()["id"]
 
-    response = await client.patch(f"/api/v1/livros/{livro_id}", json={})
+    response = await client.patch(
+        f"/api/v1/livros/{livro_id}",
+        json={},
+        headers=headers,
+    )
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "invalid_payload"
 
 
 @pytest.mark.asyncio
 async def test_validation_error_payload_shape(client: AsyncClient) -> None:
+    headers = await _auth_headers(client, "validation_shape")
+
     response = await client.post(
         "/api/v1/livros",
         json={
@@ -147,6 +195,7 @@ async def test_validation_error_payload_shape(client: AsyncClient) -> None:
             "ano_publicacao": 2025,
             "disponivel": True,
         },
+        headers=headers,
     )
 
     assert response.status_code == 422
@@ -160,6 +209,8 @@ async def test_validation_error_payload_shape(client: AsyncClient) -> None:
 async def test_list_livros_supports_author_year_and_ordering(
     client: AsyncClient,
 ) -> None:
+    headers = await _auth_headers(client, "author_year_order")
+
     await client.post(
         "/api/v1/livros",
         json={
@@ -169,6 +220,7 @@ async def test_list_livros_supports_author_year_and_ordering(
             "ano_publicacao": 2011,
             "disponivel": True,
         },
+        headers=headers,
     )
     await client.post(
         "/api/v1/livros",
@@ -179,6 +231,7 @@ async def test_list_livros_supports_author_year_and_ordering(
             "ano_publicacao": 2008,
             "disponivel": True,
         },
+        headers=headers,
     )
     await client.post(
         "/api/v1/livros",
@@ -189,6 +242,7 @@ async def test_list_livros_supports_author_year_and_ordering(
             "ano_publicacao": 2011,
             "disponivel": True,
         },
+        headers=headers,
     )
 
     filtered_response = await client.get(
