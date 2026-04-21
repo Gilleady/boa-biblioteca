@@ -3,9 +3,6 @@ from __future__ import annotations
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, Security, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.api.deps import get_current_usuario
 from app.api.docs import (
     AUTH_401_RESPONSE,
@@ -19,6 +16,8 @@ from app.models.usuario import Usuario
 from app.repositories.livro import LivroRepository
 from app.schemas.livro import LivroCreate, LivroListResponse, LivroRead, LivroUpdate
 from app.services.livro import LivroService
+from fastapi import APIRouter, Depends, Query, Response, Security, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/livros", tags=["livros"])
 

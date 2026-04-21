@@ -4,10 +4,9 @@ from datetime import datetime, timedelta
 from typing import Literal
 from uuid import UUID
 
+from app.models.emprestimo import Emprestimo
 from sqlalchemy import Select, asc, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.models.emprestimo import Emprestimo
 
 
 class EmprestimoRepository:

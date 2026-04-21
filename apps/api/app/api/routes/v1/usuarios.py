@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.api.docs import (
     CONFLICT_409_RESPONSE,
     INVALID_PAYLOAD_400_RESPONSE,
@@ -22,6 +19,8 @@ from app.schemas.usuario import (
     UsuarioUpdate,
 )
 from app.services.usuario import UsuarioService
+from fastapi import APIRouter, Depends, Query, Response, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/usuarios", tags=["usuarios"])
 

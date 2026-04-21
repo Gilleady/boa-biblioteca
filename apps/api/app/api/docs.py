@@ -17,10 +17,7 @@ NOT_FOUND_404_RESPONSE = {
 
 CONFLICT_409_RESPONSE = {
     "model": ErrorResponse,
-    "description": (
-        "Conflict with existing data "
-        "(unique constraint or relationship rule)."
-    ),
+    "description": "Conflict with existing data (unique constraint or relationship rule).",
 }
 
 INVALID_PAYLOAD_400_RESPONSE = {

@@ -1,6 +1,3 @@
-from fastapi import APIRouter, Depends, Security, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.api.deps import get_current_usuario
 from app.api.docs import (
     AUTH_401_RESPONSE,
@@ -14,6 +11,8 @@ from app.models.usuario import Usuario
 from app.repositories.usuario import UsuarioRepository
 from app.schemas.auth import LoginRequest, TokenResponse
 from app.schemas.usuario import UsuarioRead
+from fastapi import APIRouter, Depends, Security, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
