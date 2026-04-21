@@ -21,6 +21,10 @@ type UserResponse = {
   username: string
 }
 
+type PessoaResponse = {
+  id: string
+}
+
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('bb_token')
   const headers = new Headers(options.headers)
@@ -52,6 +56,12 @@ export function App() {
   const [username, setUsername] = useState('')
   const [senha, setSenha] = useState('')
   const [authError, setAuthError] = useState('')
+  const [registerNome, setRegisterNome] = useState('')
+  const [registerEmail, setRegisterEmail] = useState('')
+  const [registerUsername, setRegisterUsername] = useState('')
+  const [registerSenha, setRegisterSenha] = useState('')
+  const [registerError, setRegisterError] = useState('')
+  const [registerSuccess, setRegisterSuccess] = useState('')
   const [user, setUser] = useState<UserResponse | null>(null)
   const [livros, setLivros] = useState<Livro[]>([])
   const [loadingLivros, setLoadingLivros] = useState(false)
@@ -104,6 +114,42 @@ export function App() {
       setSenha('')
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Falha no login')
+    }
+  }
+
+  async function handleRegister(event: React.FormEvent) {
+    event.preventDefault()
+    setRegisterError('')
+    setRegisterSuccess('')
+
+    try {
+      const pessoa = await apiFetch<PessoaResponse>('/api/v1/pessoas', {
+        method: 'POST',
+        body: JSON.stringify({
+          nome: registerNome,
+          email: registerEmail,
+        }),
+      })
+
+      await apiFetch('/api/v1/usuarios', {
+        method: 'POST',
+        body: JSON.stringify({
+          pessoa_id: pessoa.id,
+          username: registerUsername,
+          senha: registerSenha,
+          ativo: true,
+        }),
+      })
+
+      setUsername(registerUsername)
+      setSenha(registerSenha)
+      setRegisterNome('')
+      setRegisterEmail('')
+      setRegisterUsername('')
+      setRegisterSenha('')
+      setRegisterSuccess('Cadastro concluído. Agora clique em Acessar para entrar.')
+    } catch (error) {
+      setRegisterError(error instanceof Error ? error.message : 'Falha no cadastro')
     }
   }
 
@@ -173,14 +219,39 @@ export function App() {
               <button type="submit">Acessar</button>
             </form>
 
-            <div className="card muted">
-              <h2>Fluxo atual</h2>
-              <ul>
-                <li>Listagem de livros pública</li>
-                <li>Login JWT para ações protegidas</li>
-                <li>UI neutra, pronta para evoluir para RBAC</li>
-              </ul>
-            </div>
+            <form className="card form" onSubmit={handleRegister}>
+              <h2>Criar conta</h2>
+              <label>
+                Nome
+                <input value={registerNome} onChange={(event) => setRegisterNome(event.target.value)} />
+              </label>
+              <label>
+                Email
+                <input
+                  type="email"
+                  value={registerEmail}
+                  onChange={(event) => setRegisterEmail(event.target.value)}
+                />
+              </label>
+              <label>
+                Usuário
+                <input
+                  value={registerUsername}
+                  onChange={(event) => setRegisterUsername(event.target.value)}
+                />
+              </label>
+              <label>
+                Senha
+                <input
+                  type="password"
+                  value={registerSenha}
+                  onChange={(event) => setRegisterSenha(event.target.value)}
+                />
+              </label>
+              {registerError ? <p className="error">{registerError}</p> : null}
+              {registerSuccess ? <p>{registerSuccess}</p> : null}
+              <button type="submit">Cadastrar</button>
+            </form>
           </section>
         ) : null}
 
