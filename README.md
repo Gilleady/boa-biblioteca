@@ -99,5 +99,10 @@ Exemplo de criação de usuário:
 ```bash
 curl -X POST "http://localhost:8000/api/v1/usuarios" \
 	-H "Content-Type: application/json" \
-	-d '{"pessoa_id":"<UUID_DA_PESSOA>","username":"adal","senha_hash":"hash","ativo":true}'
+	-d '{"pessoa_id":"<UUID_DA_PESSOA>","username":"adal","senha":"senha","ativo":true}'
 ```
+
+Login e sessão:
+
+- `POST /api/v1/auth/login` com `username` e `senha`
+- `GET /api/v1/auth/me` para recuperar o usuário autenticado com o token JWT

@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.api.deps import get_current_usuario
 from app.core.exceptions import AppError
 from app.core.security import create_access_token, verify_password
 from app.db.session import get_async_session
+from app.models.usuario import Usuario
 from app.repositories.usuario import UsuarioRepository
 from app.schemas.auth import LoginRequest, TokenResponse
+from app.schemas.usuario import UsuarioRead
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -44,3 +46,8 @@ async def login(
     access_token = create_access_token(usuario.id)
 
     return TokenResponse(access_token=access_token, token_type="bearer")
+
+
+@router.get("/me", response_model=UsuarioRead)
+async def me(usuario: Usuario = Depends(get_current_usuario)) -> UsuarioRead:
+    return UsuarioRead.model_validate(usuario)

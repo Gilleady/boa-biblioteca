@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.exceptions import AppError
 from app.db.session import get_async_session
 from app.repositories.pessoa import PessoaRepository
@@ -15,6 +12,8 @@ from app.schemas.pessoa import (
     PessoaUpdate,
 )
 from app.services.pessoa import PessoaService
+from fastapi import APIRouter, Depends, Query, Response, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/pessoas", tags=["pessoas"])
 

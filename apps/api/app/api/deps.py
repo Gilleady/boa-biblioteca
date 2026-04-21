@@ -1,10 +1,9 @@
-from fastapi import Depends, Header, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.security import decode_access_token
 from app.db.session import get_async_session
 from app.models.usuario import Usuario
 from app.repositories.usuario import UsuarioRepository
+from fastapi import Depends, Header, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def get_current_usuario(

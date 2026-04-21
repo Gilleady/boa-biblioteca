@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.exceptions import AppError
 from app.db.session import get_async_session
 from app.repositories.pessoa import PessoaRepository
@@ -16,6 +13,8 @@ from app.schemas.usuario import (
     UsuarioUpdate,
 )
 from app.services.usuario import UsuarioService
+from fastapi import APIRouter, Depends, Query, Response, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/usuarios", tags=["usuarios"])
 
