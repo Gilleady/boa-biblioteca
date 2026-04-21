@@ -1,9 +1,10 @@
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from app.settings import get_settings
 from jose import JWTError, jwt  # type: ignore[import-untyped]
 from passlib.context import CryptContext  # type: ignore[import-untyped]
+
+from app.settings import get_settings
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 

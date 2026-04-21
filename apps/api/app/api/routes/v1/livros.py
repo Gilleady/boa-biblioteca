@@ -3,15 +3,22 @@ from __future__ import annotations
 from typing import Literal
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, Query, Response, Security, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import get_current_usuario
+from app.api.docs import (
+    AUTH_401_RESPONSE,
+    INVALID_PAYLOAD_400_RESPONSE,
+    NOT_FOUND_404_RESPONSE,
+    VALIDATION_422_RESPONSE,
+)
 from app.core.exceptions import AppError
 from app.db.session import get_async_session
 from app.models.usuario import Usuario
 from app.repositories.livro import LivroRepository
 from app.schemas.livro import LivroCreate, LivroListResponse, LivroRead, LivroUpdate
 from app.services.livro import LivroService
-from fastapi import APIRouter, Depends, Query, Response, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/livros", tags=["livros"])
 
@@ -22,7 +29,13 @@ def get_livro_service(
     return LivroService(LivroRepository(session))
 
 
-@router.get("", response_model=LivroListResponse)
+@router.get(
+    "",
+    response_model=LivroListResponse,
+    summary="List books",
+    description="Returns paginated books with optional filters and sorting.",
+    responses={422: VALIDATION_422_RESPONSE},
+)
 async def list_livros(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
@@ -46,7 +59,12 @@ async def list_livros(
     )
 
 
-@router.get("/{livro_id}", response_model=LivroRead)
+@router.get(
+    "/{livro_id}",
+    response_model=LivroRead,
+    summary="Get book by id",
+    responses={404: NOT_FOUND_404_RESPONSE},
+)
 async def get_livro(
     livro_id: UUID,
     service: LivroService = Depends(get_livro_service),
@@ -54,21 +72,37 @@ async def get_livro(
     return await service.get(livro_id)
 
 
-@router.post("", response_model=LivroRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=LivroRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new book",
+    responses={401: AUTH_401_RESPONSE, 422: VALIDATION_422_RESPONSE},
+)
 async def create_livro(
     payload: LivroCreate,
     service: LivroService = Depends(get_livro_service),
-    _: Usuario = Depends(get_current_usuario),
+    _: Usuario = Security(get_current_usuario),
 ) -> LivroRead:
     return await service.create(payload)
 
 
-@router.patch("/{livro_id}", response_model=LivroRead)
+@router.patch(
+    "/{livro_id}",
+    response_model=LivroRead,
+    summary="Update a book",
+    responses={
+        400: INVALID_PAYLOAD_400_RESPONSE,
+        401: AUTH_401_RESPONSE,
+        404: NOT_FOUND_404_RESPONSE,
+        422: VALIDATION_422_RESPONSE,
+    },
+)
 async def update_livro(
     livro_id: UUID,
     payload: LivroUpdate,
     service: LivroService = Depends(get_livro_service),
-    _: Usuario = Depends(get_current_usuario),
+    _: Usuario = Security(get_current_usuario),
 ) -> LivroRead:
     if not payload.model_dump(exclude_unset=True):
         raise AppError(
@@ -80,11 +114,16 @@ async def update_livro(
     return await service.update(livro_id, payload)
 
 
-@router.delete("/{livro_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{livro_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a book",
+    responses={401: AUTH_401_RESPONSE, 404: NOT_FOUND_404_RESPONSE},
+)
 async def delete_livro(
     livro_id: UUID,
     service: LivroService = Depends(get_livro_service),
-    _: Usuario = Depends(get_current_usuario),
+    _: Usuario = Security(get_current_usuario),
 ) -> Response:
     await service.delete(livro_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

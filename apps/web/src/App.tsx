@@ -55,6 +55,7 @@ export function App() {
   const [user, setUser] = useState<UserResponse | null>(null)
   const [livros, setLivros] = useState<Livro[]>([])
   const [loadingLivros, setLoadingLivros] = useState(false)
+  const [livroError, setLivroError] = useState('')
   const [livroForm, setLivroForm] = useState({ titulo: '', autor: '', isbn: '', ano_publicacao: '', disponivel: true })
 
   useEffect(() => {
@@ -108,23 +109,35 @@ export function App() {
 
   async function handleCreateLivro(event: React.FormEvent) {
     event.preventDefault()
-    await apiFetch('/api/v1/livros', {
-      method: 'POST',
-      body: JSON.stringify({
-        titulo: livroForm.titulo,
-        autor: livroForm.autor,
-        isbn: livroForm.isbn,
-        ano_publicacao: livroForm.ano_publicacao ? Number(livroForm.ano_publicacao) : null,
-        disponivel: livroForm.disponivel,
-      }),
-    })
-    setLivroForm({ titulo: '', autor: '', isbn: '', ano_publicacao: '', disponivel: true })
-    await loadLivros()
+    setLivroError('')
+
+    try {
+      await apiFetch('/api/v1/livros', {
+        method: 'POST',
+        body: JSON.stringify({
+          titulo: livroForm.titulo,
+          autor: livroForm.autor,
+          isbn: livroForm.isbn,
+          ano_publicacao: livroForm.ano_publicacao ? Number(livroForm.ano_publicacao) : null,
+          disponivel: livroForm.disponivel,
+        }),
+      })
+      setLivroForm({ titulo: '', autor: '', isbn: '', ano_publicacao: '', disponivel: true })
+      await loadLivros()
+    } catch (error) {
+      setLivroError(error instanceof Error ? error.message : 'Falha ao criar livro')
+    }
   }
 
   async function handleDeleteLivro(id: string) {
-    await apiFetch(`/api/v1/livros/${id}`, { method: 'DELETE' })
-    await loadLivros()
+    setLivroError('')
+
+    try {
+      await apiFetch(`/api/v1/livros/${id}`, { method: 'DELETE' })
+      await loadLivros()
+    } catch (error) {
+      setLivroError(error instanceof Error ? error.message : 'Falha ao excluir livro')
+    }
   }
 
   return (
@@ -182,6 +195,7 @@ export function App() {
           {isAuthenticated ? (
             <form className="card form grid-compact" onSubmit={handleCreateLivro}>
               <h3>Novo livro</h3>
+              {livroError ? <p className="error">{livroError}</p> : null}
               <label>
                 Título
                 <input value={livroForm.titulo} onChange={(event) => setLivroForm({ ...livroForm, titulo: event.target.value })} />

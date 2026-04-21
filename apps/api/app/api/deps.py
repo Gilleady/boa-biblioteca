@@ -1,30 +1,28 @@
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security import decode_access_token
 from app.db.session import get_async_session
 from app.models.usuario import Usuario
 from app.repositories.usuario import UsuarioRepository
-from fastapi import Depends, Header, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+
+bearer_scheme = HTTPBearer(auto_error=False, scheme_name="BearerAuth")
 
 
 async def get_current_usuario(
     session: AsyncSession = Depends(get_async_session),
-    authorization: str | None = Header(None),
+    credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme),
 ) -> Usuario:
     """Extract and validate JWT token, return current usuario."""
-    if authorization is None:
+    if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token = _extract_token(authorization)
-    if token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header format",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    token = credentials.credentials
 
     usuario_id = decode_access_token(token)
     if usuario_id is None:
@@ -52,14 +50,3 @@ async def get_current_usuario(
         )
 
     return usuario
-
-
-def _extract_token(authorization: str) -> str | None:
-    """Extract Bearer token from Authorization header."""
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            return None
-        return token
-    except ValueError:
-        return None

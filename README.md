@@ -1,92 +1,95 @@
 # boa-biblioteca
 
-Monorepo do projeto de biblioteca com backend em FastAPI na pasta `apps/api`.
+Monorepo da Boa Biblioteca com backend em FastAPI e frontend em React/Vite.
 
-## Backend novo
+## Visao Geral
 
+O projeto disponibiliza uma API REST versionada (`/api/v1`) para catalogo de livros, pessoas, usuarios e autenticacao JWT, com interface web para login e operacoes do catalogo.
+
+## Stack
+
+- Backend: Python 3.12, FastAPI, SQLAlchemy 2.0 async, asyncpg, Alembic
+- Frontend: React, Vite, TypeScript
+- Qualidade: Ruff, mypy, pytest
+- Infra local: Docker Compose (API + Postgres)
+
+## Arquitetura
+
+- `apps/api/app/api`: rotas HTTP, dependencias e handlers de erro
+- `apps/api/app/services`: regras de negocio
+- `apps/api/app/repositories`: acesso a dados
+- `apps/api/app/models`: modelos ORM
+- `apps/api/alembic`: migrations
+- `apps/web`: aplicacao frontend
+
+## Pre-requisitos
+
+- Docker e Docker Compose
 - Python 3.12+
-- FastAPI
-- SQLAlchemy 2.0 async + asyncpg
-- Alembic para migrations
-- Ruff, pytest, mypy e pre-commit
+- Node.js 20+
 
-## Como rodar localmente
+## Configuracao de Ambiente
 
-Suba a API e o Postgres com Docker Compose na raiz:
+O backend usa `apps/api/.env` (carregado automaticamente via settings). Campos principais:
+
+- `DATABASE_URL`
+- `JWT_SECRET_KEY`
+- `JWT_ALGORITHM`
+- `JWT_EXPIRATION_MINUTES`
+- `CORS_ORIGINS`
+
+Se nao informado, valores de desenvolvimento sao usados no backend.
+
+## Execucao Local
+
+### 1. Backend + Banco com Docker
 
 ```bash
 docker compose up --build
 ```
 
-A API ficará disponível em http://localhost:8000.
+API disponivel em `http://localhost:8000`.
 
-## Como rodar migrations
+### 2. Frontend
 
-Com a stack em pé, rode:
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+Frontend disponivel em `http://localhost:5173`.
+
+## Migrations
+
+Aplicar migrations:
 
 ```bash
 docker compose exec api uv run alembic upgrade head
 ```
 
-Para criar uma nova migration:
+Gerar nova migration:
 
 ```bash
 docker compose exec api uv run alembic revision --autogenerate -m "sua mensagem"
 ```
 
-## Como rodar testes
+## Documentacao da API
 
-No backend:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+- OpenAPI JSON: `http://localhost:8000/openapi.json`
 
-```bash
-cd apps/api
-uv sync --dev
-uv run pytest
-```
+Melhores praticas aplicadas na documentacao:
 
-## Qualidade
+- endpoints agrupados por tags de dominio
+- esquema de seguranca Bearer JWT no Swagger
+- modelos de erro padronizados e respostas documentadas
+- exemplos de payload em schemas principais
 
-```bash
-cd apps/api
-uv run ruff check .
-uv run ruff format --check .
-uv run mypy app tests
-```
+## Fluxo JWT (fim a fim)
 
-## Estrutura nova
-
-- `apps/api/app/api` para rotas HTTP
-- `apps/api/app/core` para configurações e peças transversais
-- `apps/api/app/db` para engine, sessão e base ORM
-- `apps/api/alembic` para migrations
-
-## Endpoints iniciais (API v1)
-
-Base: `http://localhost:8000/api/v1`
-
-- `GET /livros` com paginação e filtros: `titulo`, `autor`, `ano_publicacao`, `disponivel`, `order_by`, `order_direction`
-- `GET /livros/{id}`
-- `POST /livros`
-- `PATCH /livros/{id}`
-- `DELETE /livros/{id}`
-- `GET /pessoas` com paginação e filtros: `nome`, `email`
-- `GET /pessoas/{id}`
-- `POST /pessoas`
-- `PATCH /pessoas/{id}`
-- `DELETE /pessoas/{id}`
-- `GET /usuarios` com paginação e filtros: `username`, `ativo`
-- `GET /usuarios/{id}`
-- `POST /usuarios`
-- `PATCH /usuarios/{id}`
-- `DELETE /usuarios/{id}`
-
-Exemplo de listagem de livros com filtros:
-
-```bash
-curl "http://localhost:8000/api/v1/livros?autor=Martin&ano_publicacao=2011&order_by=titulo&order_direction=asc"
-```
-
-Exemplo de criação de pessoa:
+### 1. Criar pessoa
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/pessoas" \
@@ -94,15 +97,87 @@ curl -X POST "http://localhost:8000/api/v1/pessoas" \
 	-d '{"nome":"Ada Lovelace","email":"ada@example.com"}'
 ```
 
-Exemplo de criação de usuário:
+### 2. Criar usuario
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/usuarios" \
 	-H "Content-Type: application/json" \
-	-d '{"pessoa_id":"<UUID_DA_PESSOA>","username":"adal","senha":"senha","ativo":true}'
+	-d '{"pessoa_id":"<UUID_DA_PESSOA>","username":"adal","senha":"senha123","ativo":true}'
 ```
 
-Login e sessão:
+### 3. Fazer login
 
-- `POST /api/v1/auth/login` com `username` e `senha`
-- `GET /api/v1/auth/me` para recuperar o usuário autenticado com o token JWT
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/login" \
+	-H "Content-Type: application/json" \
+	-d '{"username":"adal","senha":"senha123"}'
+```
+
+Resposta esperada:
+
+```json
+{
+	"access_token": "<JWT>",
+	"token_type": "bearer"
+}
+```
+
+### 4. Consultar sessao atual
+
+```bash
+curl "http://localhost:8000/api/v1/auth/me" \
+	-H "Authorization: Bearer <JWT>"
+```
+
+### 5. Criar livro com rota protegida
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/livros" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer <JWT>" \
+	-d '{"titulo":"Clean Code","autor":"Robert C. Martin","isbn":"9780132350884","ano_publicacao":2008,"disponivel":true}'
+```
+
+## Endpoints
+
+Base: `http://localhost:8000/api/v1`
+
+- `GET /livros` (filtros: `titulo`, `autor`, `ano_publicacao`, `disponivel`, `order_by`, `order_direction`)
+- `GET /livros/{id}`
+- `POST /livros` (protegido)
+- `PATCH /livros/{id}` (protegido)
+- `DELETE /livros/{id}` (protegido)
+- `GET /pessoas` (filtros: `nome`, `email`)
+- `GET /pessoas/{id}`
+- `POST /pessoas`
+- `PATCH /pessoas/{id}`
+- `DELETE /pessoas/{id}`
+- `GET /usuarios` (filtros: `username`, `ativo`)
+- `GET /usuarios/{id}`
+- `POST /usuarios`
+- `PATCH /usuarios/{id}`
+- `DELETE /usuarios/{id}`
+- `POST /auth/login`
+- `GET /auth/me` (protegido)
+
+## Qualidade e Testes
+
+```bash
+cd apps/api
+uv sync --dev
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy app tests
+uv run pytest
+```
+
+## Troubleshooting
+
+- Erro de CORS no frontend:
+	- Verifique `CORS_ORIGINS` e confirme que `http://localhost:5173` esta liberado.
+- Erro de conexao com banco:
+	- Confirme que o container `db` esta healthy no `docker compose ps`.
+- `401 Not authenticated`:
+	- Verifique se o header `Authorization: Bearer <JWT>` foi enviado.
+- Token expirado:
+	- Efetue novo login em `/api/v1/auth/login`.

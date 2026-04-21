@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Boa Biblioteca API"
+    app_version: str = "1.0.0"
+    app_description: str = (
+        "API da Boa Biblioteca com autenticacao JWT, CRUD de livros, "
+        "pessoas e usuarios."
+    )
     environment: str = "development"
     database_url: str = Field(
         default="postgresql+asyncpg://postgres:postgres@localhost:5432/boabiblioteca",

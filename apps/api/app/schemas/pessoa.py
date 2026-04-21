@@ -9,8 +9,18 @@ from app.schemas.common import PaginatedResponse
 
 
 class PessoaBase(BaseModel):
-    nome: str = Field(min_length=1, max_length=255)
-    email: str = Field(min_length=3, max_length=255)
+    nome: str = Field(
+        min_length=1,
+        max_length=255,
+        description="Full name.",
+        examples=["Ada Lovelace"],
+    )
+    email: str = Field(
+        min_length=3,
+        max_length=255,
+        description="Email address.",
+        examples=["ada@example.com"],
+    )
 
 
 class PessoaCreate(PessoaBase):
