@@ -35,6 +35,13 @@ class LivroBase(BaseModel):
         examples=[2008],
     )
     disponivel: bool = Field(default=True, description="Availability status.")
+    dias_emprestimo_padrao: int = Field(
+        default=7,
+        ge=1,
+        le=365,
+        description="Default loan duration in days.",
+        examples=[7],
+    )
 
 
 class LivroCreate(LivroBase):
@@ -47,6 +54,7 @@ class LivroUpdate(BaseModel):
     isbn: str | None = Field(default=None, min_length=10, max_length=20)
     ano_publicacao: int | None = Field(default=None, ge=0, le=2100)
     disponivel: bool | None = None
+    dias_emprestimo_padrao: int | None = Field(default=None, ge=1, le=365)
 
 
 class LivroRead(LivroBase):

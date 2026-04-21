@@ -18,6 +18,9 @@ class Livro(Base):
     isbn: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     ano_publicacao: Mapped[int | None] = mapped_column(Integer)
     disponivel: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    dias_emprestimo_padrao: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=7
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
