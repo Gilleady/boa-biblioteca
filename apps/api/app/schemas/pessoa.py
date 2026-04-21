@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from app.schemas.common import PaginatedResponse
 from pydantic import BaseModel, ConfigDict, Field
+
+from app.schemas.common import PaginatedResponse
 
 
 class PessoaBase(BaseModel):

@@ -1,8 +1,9 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.error_handlers import register_exception_handlers
 from app.api.router import api_router
 from app.settings import get_settings
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 OPENAPI_TAGS = [
     {"name": "health", "description": "Health checks and service availability."},

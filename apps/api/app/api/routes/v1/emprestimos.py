@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import Literal
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, Query, Security, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import get_current_usuario
 from app.api.docs import (
     AUTH_401_RESPONSE,
@@ -20,8 +23,6 @@ from app.schemas.emprestimo import (
     EmprestimoRead,
 )
 from app.services.emprestimo import EmprestimoService
-from fastapi import APIRouter, Depends, Query, Security, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/emprestimos", tags=["emprestimos"])
 
