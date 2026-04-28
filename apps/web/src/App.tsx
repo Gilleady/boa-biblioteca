@@ -16,13 +16,19 @@ type TokenResponse = {
   token_type: string
 }
 
+type Papel = 'admin' | 'atendente' | 'leitor'
+
 type UserResponse = {
   id: string
   username: string
+  pessoa_id: string
+  papel: Papel
 }
 
-type PessoaResponse = {
-  id: string
+type RegisterResponse = {
+  status: 'created' | 'verification_required'
+  message: string
+  verification_code: string | null
 }
 
 type Pessoa = {
@@ -92,8 +98,11 @@ export function App() {
   const [registerEmail, setRegisterEmail] = useState('')
   const [registerUsername, setRegisterUsername] = useState('')
   const [registerSenha, setRegisterSenha] = useState('')
+  const [registerVerifyEmail, setRegisterVerifyEmail] = useState('')
+  const [registerVerifyCode, setRegisterVerifyCode] = useState('')
   const [registerError, setRegisterError] = useState('')
   const [registerSuccess, setRegisterSuccess] = useState('')
+  const [registerNeedsVerification, setRegisterNeedsVerification] = useState(false)
   const [user, setUser] = useState<UserResponse | null>(null)
   const [livros, setLivros] = useState<Livro[]>([])
   const [pessoas, setPessoas] = useState<Pessoa[]>([])
@@ -124,6 +133,15 @@ export function App() {
   }, [token])
 
   const isAuthenticated = useMemo(() => Boolean(token), [token])
+  const userRole = useMemo(() => user?.papel ?? null, [user])
+  const canManageCatalog = useMemo(
+    () => userRole === 'admin' || userRole === 'atendente',
+    [userRole],
+  )
+  const canManageLoans = useMemo(
+    () => userRole === 'admin' || userRole === 'atendente',
+    [userRole],
+  )
   const livrosDisponiveis = useMemo(
     () => livros.filter((livro) => livro.disponivel),
     [livros],
@@ -138,7 +156,7 @@ export function App() {
   )
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !canManageLoans) {
       return
     }
 
@@ -161,7 +179,7 @@ export function App() {
         return { ...current, livro_id: livrosDisponiveis[0].id }
       })
     }
-  }, [isAuthenticated, livrosDisponiveis, pessoaById, pessoas])
+  }, [canManageLoans, isAuthenticated, livrosDisponiveis, pessoaById, pessoas])
 
   async function loadLivros() {
     setLoadingLivros(true)
@@ -216,8 +234,14 @@ export function App() {
       return
     }
 
-    Promise.all([loadPessoas(), loadEmprestimos(), loadLivros()]).catch(() => undefined)
-  }, [isAuthenticated])
+    if (canManageLoans) {
+      Promise.all([loadPessoas(), loadEmprestimos(), loadLivros()]).catch(() => undefined)
+      return
+    }
+
+    setPessoas([])
+    Promise.all([loadEmprestimos(), loadLivros()]).catch(() => undefined)
+  }, [canManageLoans, isAuthenticated])
 
   async function handleLogin(event: React.FormEvent) {
     event.preventDefault()
@@ -243,24 +267,30 @@ export function App() {
     setRegisterSuccess('')
 
     try {
-      const pessoa = await apiFetch<PessoaResponse>('/api/v1/pessoas', {
+      const response = await apiFetch<RegisterResponse>('/api/v1/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           nome: registerNome,
           email: registerEmail,
-        }),
-      })
-
-      await apiFetch('/api/v1/usuarios', {
-        method: 'POST',
-        body: JSON.stringify({
-          pessoa_id: pessoa.id,
           username: registerUsername,
           senha: registerSenha,
-          ativo: true,
         }),
       })
 
+      if (response.status === 'verification_required') {
+        setRegisterNeedsVerification(true)
+        setRegisterVerifyEmail(registerEmail)
+        setRegisterSuccess(
+          response.verification_code
+            ? `${response.message} Codigo (dev): ${response.verification_code}`
+            : response.message,
+        )
+        return
+      }
+
+      setRegisterNeedsVerification(false)
+      setRegisterVerifyEmail('')
+      setRegisterVerifyCode('')
       setUsername(registerUsername)
       setSenha(registerSenha)
       setRegisterNome('')
@@ -271,6 +301,40 @@ export function App() {
     } catch (error) {
       setRegisterError(error instanceof Error ? error.message : 'Falha no cadastro')
     }
+  }
+
+  async function handleRegisterVerify(event: React.FormEvent) {
+    event.preventDefault()
+    setRegisterError('')
+    setRegisterSuccess('')
+
+    try {
+      const response = await apiFetch<RegisterResponse>('/api/v1/auth/register/verify', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: registerVerifyEmail,
+          code: registerVerifyCode,
+        }),
+      })
+
+      setRegisterNeedsVerification(false)
+      setRegisterVerifyCode('')
+      setUsername(registerUsername)
+      setSenha(registerSenha)
+      setRegisterNome('')
+      setRegisterEmail('')
+      setRegisterUsername('')
+      setRegisterSenha('')
+      setRegisterSuccess(response.message)
+    } catch (error) {
+      setRegisterError(error instanceof Error ? error.message : 'Falha na verificação')
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('bb_token')
+    setToken(null)
+    setUser(null)
   }
 
   async function handleCreateLivro(event: React.FormEvent) {
@@ -358,6 +422,12 @@ export function App() {
           <div className="status-card">
             <span>Status</span>
             <strong>{isAuthenticated ? `Logado como ${user?.username ?? 'usuário'}` : 'Sessão desconectada'}</strong>
+            {isAuthenticated && userRole ? <p className="role-pill">Papel: {userRole}</p> : null}
+            {isAuthenticated ? (
+              <button type="button" className="ghost" onClick={handleLogout}>
+                Sair
+              </button>
+            ) : null}
           </div>
         </section>
 
@@ -409,6 +479,31 @@ export function App() {
               {registerError ? <p className="error">{registerError}</p> : null}
               {registerSuccess ? <p>{registerSuccess}</p> : null}
               <button type="submit">Cadastrar</button>
+
+              {registerNeedsVerification ? (
+                <>
+                  <hr />
+                  <h3>Validar código</h3>
+                  <label>
+                    Email
+                    <input
+                      type="email"
+                      value={registerVerifyEmail}
+                      onChange={(event) => setRegisterVerifyEmail(event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Código
+                    <input
+                      value={registerVerifyCode}
+                      onChange={(event) => setRegisterVerifyCode(event.target.value)}
+                    />
+                  </label>
+                  <button type="button" onClick={(event) => void handleRegisterVerify(event)}>
+                    Confirmar código
+                  </button>
+                </>
+              ) : null}
             </form>
           </section>
         ) : null}
@@ -421,7 +516,7 @@ export function App() {
             </button>
           </div>
 
-          {isAuthenticated ? (
+          {isAuthenticated && canManageCatalog ? (
             <form className="card form grid-compact" onSubmit={handleCreateLivro}>
               <h3>Novo livro</h3>
               {livroError ? <p className="error">{livroError}</p> : null}
@@ -469,7 +564,7 @@ export function App() {
                   <span className={livro.disponivel ? 'pill available' : 'pill unavailable'}>
                     {livro.disponivel ? 'Disponível' : 'Indisponível'}
                   </span>
-                  {isAuthenticated ? (
+                  {isAuthenticated && canManageCatalog ? (
                     <button type="button" className="ghost" onClick={() => handleDeleteLivro(livro.id).catch(() => undefined)}>
                       Excluir
                     </button>
@@ -493,60 +588,71 @@ export function App() {
             </div>
 
             <div className="grid-two">
-              <form className="card form" onSubmit={handleCreateEmprestimo}>
-                <h3>Novo empréstimo</h3>
-                {emprestimoError ? <p className="error">{emprestimoError}</p> : null}
-                {emprestimoSuccess ? <p>{emprestimoSuccess}</p> : null}
+              {canManageLoans ? (
+                <form className="card form" onSubmit={handleCreateEmprestimo}>
+                  <h3>Novo empréstimo</h3>
+                  {emprestimoError ? <p className="error">{emprestimoError}</p> : null}
+                  {emprestimoSuccess ? <p>{emprestimoSuccess}</p> : null}
 
-                <label>
-                  Pessoa
-                  <select
-                    value={emprestimoForm.pessoa_id}
-                    onChange={(event) =>
-                      setEmprestimoForm({ ...emprestimoForm, pessoa_id: event.target.value })
-                    }
-                  >
-                    <option value="">Selecione uma pessoa</option>
-                    {pessoas.map((pessoa) => (
-                      <option key={pessoa.id} value={pessoa.id}>
-                        {pessoa.nome} · {pessoa.email}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  <label>
+                    Pessoa
+                    <select
+                      value={emprestimoForm.pessoa_id}
+                      onChange={(event) =>
+                        setEmprestimoForm({ ...emprestimoForm, pessoa_id: event.target.value })
+                      }
+                    >
+                      <option value="">Selecione uma pessoa</option>
+                      {pessoas.map((pessoa) => (
+                        <option key={pessoa.id} value={pessoa.id}>
+                          {pessoa.nome} · {pessoa.email}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-                <label>
-                  Livro disponível
-                  <select
-                    value={emprestimoForm.livro_id}
-                    onChange={(event) =>
-                      setEmprestimoForm({ ...emprestimoForm, livro_id: event.target.value })
-                    }
-                  >
-                    <option value="">Selecione um livro</option>
-                    {livrosDisponiveis.map((livro) => (
-                      <option key={livro.id} value={livro.id}>
-                        {livro.titulo} · {livro.autor}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  <label>
+                    Livro disponível
+                    <select
+                      value={emprestimoForm.livro_id}
+                      onChange={(event) =>
+                        setEmprestimoForm({ ...emprestimoForm, livro_id: event.target.value })
+                      }
+                    >
+                      <option value="">Selecione um livro</option>
+                      {livrosDisponiveis.map((livro) => (
+                        <option key={livro.id} value={livro.id}>
+                          {livro.titulo} · {livro.autor}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-                <button type="submit" disabled={pessoas.length === 0 || livrosDisponiveis.length === 0}>
-                  Registrar empréstimo
-                </button>
+                  <button type="submit" disabled={pessoas.length === 0 || livrosDisponiveis.length === 0}>
+                    Registrar empréstimo
+                  </button>
 
-                {pessoaError ? <p className="error">{pessoaError}</p> : null}
-                {!loadingPessoas && pessoas.length === 0 ? (
-                  <p className="help-text">Nenhuma pessoa disponível para vincular.</p>
-                ) : null}
-                {!loadingLivros && livrosDisponiveis.length === 0 ? (
-                  <p className="help-text">Nenhum livro disponível para empréstimo.</p>
-                ) : null}
-              </form>
+                  {pessoaError ? <p className="error">{pessoaError}</p> : null}
+                  {!loadingPessoas && pessoas.length === 0 ? (
+                    <p className="help-text">Nenhuma pessoa disponível para vincular.</p>
+                  ) : null}
+                  {!loadingLivros && livrosDisponiveis.length === 0 ? (
+                    <p className="help-text">Nenhum livro disponível para empréstimo.</p>
+                  ) : null}
+                </form>
+              ) : (
+                <div className="card form muted">
+                  <h3>Seu histórico</h3>
+                  <p className="help-text">
+                    Como leitor, você pode consultar apenas os próprios empréstimos.
+                  </p>
+                </div>
+              )}
 
               <div className="card form loan-list-card">
                 <h3>Empréstimos registrados</h3>
+                {emprestimoError ? <p className="error">{emprestimoError}</p> : null}
+                {emprestimoSuccess ? <p>{emprestimoSuccess}</p> : null}
                 {loadingEmprestimos ? <p>Carregando...</p> : null}
                 {!loadingEmprestimos && emprestimos.length === 0 ? <p>Nenhum empréstimo encontrado.</p> : null}
 
@@ -554,12 +660,15 @@ export function App() {
                   {emprestimos.map((emprestimo) => {
                     const pessoa = pessoaById.get(emprestimo.pessoa_id)
                     const livro = livroById.get(emprestimo.livro_id)
+                    const pessoaNome =
+                      pessoa?.nome ??
+                      (emprestimo.pessoa_id === user?.pessoa_id ? 'Você' : emprestimo.pessoa_id)
 
                     return (
                       <article className="card book loan" key={emprestimo.id}>
                         <div>
                           <h3>{livro?.titulo ?? emprestimo.livro_id}</h3>
-                          <p>{pessoa?.nome ?? emprestimo.pessoa_id}</p>
+                          <p>{pessoaNome}</p>
                           <small>
                             Empréstimo em {formatDate(emprestimo.data_emprestimo)} · Previsto em{' '}
                             {formatDate(emprestimo.data_devolucao_prevista)}
@@ -569,7 +678,7 @@ export function App() {
                           <span className={emprestimo.ativo ? 'pill available' : 'pill unavailable'}>
                             {emprestimo.ativo ? 'Ativo' : 'Devolvido'}
                           </span>
-                          {emprestimo.ativo ? (
+                          {canManageLoans && emprestimo.ativo ? (
                             <button
                               type="button"
                               className="ghost"
