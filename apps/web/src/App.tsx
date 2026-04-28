@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 
 const API_BASE_URL = 'http://localhost:8000'
 
+type Papel = 'admin' | 'atendente' | 'leitor'
+
 type Livro = {
   id: string
   titulo: string
@@ -9,26 +11,6 @@ type Livro = {
   isbn: string
   ano_publicacao: number | null
   disponivel: boolean
-}
-
-type TokenResponse = {
-  access_token: string
-  token_type: string
-}
-
-type Papel = 'admin' | 'atendente' | 'leitor'
-
-type UserResponse = {
-  id: string
-  username: string
-  pessoa_id: string
-  papel: Papel
-}
-
-type RegisterResponse = {
-  status: 'created' | 'verification_required'
-  message: string
-  verification_code: string | null
 }
 
 type Pessoa = {
@@ -47,12 +29,39 @@ type Emprestimo = {
   ativo: boolean
 }
 
+type Usuario = {
+  id: string
+  username: string
+  pessoa_id: string
+  papel: Papel
+}
+
+type TokenResponse = {
+  access_token: string
+  token_type: string
+}
+
+type UserResponse = {
+  id: string
+  username: string
+  pessoa_id: string
+  papel: Papel
+}
+
+type RegisterResponse = {
+  status: 'created' | 'verification_required'
+  message: string
+  verification_code: string | null
+}
+
 type PaginatedResponse<T> = {
   items: T[]
   total: number
   page: number
   page_size: number
 }
+
+type TabKey = 'livros' | 'emprestimos' | 'usuarios' | 'cadastrar-livro' | 'cadastrar-usuario' | 'registrar-emprestimo'
 
 const DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'medium',
@@ -71,15 +80,11 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     headers.set('Authorization', `Bearer ${token}`)
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  })
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers })
 
   if (!response.ok) {
     const error = await response.json().catch(() => null)
-    const message = error?.error?.message ?? error?.detail ?? 'Erro inesperado'
-    throw new Error(message)
+    throw new Error(error?.error?.message ?? error?.detail ?? 'Erro inesperado')
   }
 
   if (response.status === 204) {
@@ -89,11 +94,21 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   return response.json() as Promise<T>
 }
 
+function TabButton({ active, children, onClick }: { active: boolean; children: string; onClick: () => void }) {
+  return (
+    <button type="button" className={active ? 'tab active' : 'tab'} onClick={onClick}>
+      {children}
+    </button>
+  )
+}
+
 export function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('bb_token'))
+  const [user, setUser] = useState<UserResponse | null>(null)
+  const [authError, setAuthError] = useState('')
   const [username, setUsername] = useState('')
   const [senha, setSenha] = useState('')
-  const [authError, setAuthError] = useState('')
+
   const [registerNome, setRegisterNome] = useState('')
   const [registerEmail, setRegisterEmail] = useState('')
   const [registerUsername, setRegisterUsername] = useState('')
@@ -103,19 +118,29 @@ export function App() {
   const [registerError, setRegisterError] = useState('')
   const [registerSuccess, setRegisterSuccess] = useState('')
   const [registerNeedsVerification, setRegisterNeedsVerification] = useState(false)
-  const [user, setUser] = useState<UserResponse | null>(null)
+
   const [livros, setLivros] = useState<Livro[]>([])
   const [pessoas, setPessoas] = useState<Pessoa[]>([])
   const [emprestimos, setEmprestimos] = useState<Emprestimo[]>([])
+  const [usuarios, setUsuarios] = useState<Usuario[]>([])
+
   const [loadingLivros, setLoadingLivros] = useState(false)
   const [loadingPessoas, setLoadingPessoas] = useState(false)
   const [loadingEmprestimos, setLoadingEmprestimos] = useState(false)
+  const [loadingUsuarios, setLoadingUsuarios] = useState(false)
+
   const [livroError, setLivroError] = useState('')
   const [pessoaError, setPessoaError] = useState('')
   const [emprestimoError, setEmprestimoError] = useState('')
   const [emprestimoSuccess, setEmprestimoSuccess] = useState('')
+  const [usuarioError, setUsuarioError] = useState('')
+  const [usuarioSuccess, setUsuarioSuccess] = useState('')
+
   const [livroForm, setLivroForm] = useState({ titulo: '', autor: '', isbn: '', ano_publicacao: '', disponivel: true })
   const [emprestimoForm, setEmprestimoForm] = useState({ pessoa_id: '', livro_id: '' })
+  const [usuarioForm, setUsuarioForm] = useState({ pessoa_id: '', username: '', senha: '', papel: 'leitor' as Papel, ativo: true })
+
+  const [activeTab, setActiveTab] = useState<TabKey>('livros')
 
   useEffect(() => {
     if (!token) {
@@ -134,52 +159,65 @@ export function App() {
 
   const isAuthenticated = useMemo(() => Boolean(token), [token])
   const userRole = useMemo(() => user?.papel ?? null, [user])
-  const canManageCatalog = useMemo(
-    () => userRole === 'admin' || userRole === 'atendente',
-    [userRole],
-  )
-  const canManageLoans = useMemo(
-    () => userRole === 'admin' || userRole === 'atendente',
-    [userRole],
-  )
-  const livrosDisponiveis = useMemo(
-    () => livros.filter((livro) => livro.disponivel),
-    [livros],
-  )
-  const livroById = useMemo(
-    () => new Map(livros.map((livro) => [livro.id, livro])),
-    [livros],
-  )
-  const pessoaById = useMemo(
-    () => new Map(pessoas.map((pessoa) => [pessoa.id, pessoa])),
-    [pessoas],
-  )
+  const canManageCatalog = useMemo(() => userRole === 'admin' || userRole === 'atendente', [userRole])
+  const canManageLoans = useMemo(() => userRole === 'admin' || userRole === 'atendente', [userRole])
+  const canManageUsers = useMemo(() => userRole === 'admin', [userRole])
+  const livrosDisponiveis = useMemo(() => livros.filter((livro) => livro.disponivel), [livros])
+  const livroById = useMemo(() => new Map(livros.map((livro) => [livro.id, livro])), [livros])
+  const pessoaById = useMemo(() => new Map(pessoas.map((pessoa) => [pessoa.id, pessoa])), [pessoas])
+
+  const availableTabs = useMemo<TabKey[]>(() => {
+    const tabs: TabKey[] = ['livros', 'emprestimos']
+    if (isAuthenticated && canManageCatalog) {
+      tabs.splice(1, 0, 'cadastrar-livro', 'registrar-emprestimo')
+    }
+    if (isAuthenticated && canManageUsers) {
+      tabs.push('cadastrar-usuario', 'usuarios')
+    }
+    return tabs
+  }, [canManageCatalog, canManageUsers, isAuthenticated])
+
+  useEffect(() => {
+    if (!availableTabs.includes(activeTab)) {
+      setActiveTab(availableTabs[0])
+    }
+  }, [activeTab, availableTabs])
+
+  useEffect(() => {
+    const tasks = [loadLivros(), loadEmprestimos()]
+
+    if (!isAuthenticated) {
+      setPessoas([])
+      setUsuarios([])
+      setEmprestimoForm({ pessoa_id: '', livro_id: '' })
+      Promise.all(tasks).catch(() => undefined)
+      return
+    }
+
+    if (canManageLoans) {
+      tasks.push(loadPessoas())
+    }
+
+    if (canManageUsers) {
+      tasks.push(loadUsuarios())
+    }
+
+    Promise.all(tasks).catch(() => undefined)
+  }, [canManageLoans, canManageUsers, isAuthenticated])
 
   useEffect(() => {
     if (!isAuthenticated || !canManageLoans) {
       return
     }
 
-    if (pessoas.length > 0) {
-      setEmprestimoForm((current) => {
-        if (current.pessoa_id && pessoaById.has(current.pessoa_id)) {
-          return current
-        }
-
-        return { ...current, pessoa_id: pessoas[0].id }
-      })
+    if (pessoas.length > 0 && !pessoaById.has(emprestimoForm.pessoa_id)) {
+      setEmprestimoForm((current) => ({ ...current, pessoa_id: pessoas[0].id }))
     }
 
-    if (livrosDisponiveis.length > 0) {
-      setEmprestimoForm((current) => {
-        if (current.livro_id && livrosDisponiveis.some((livro) => livro.id === current.livro_id)) {
-          return current
-        }
-
-        return { ...current, livro_id: livrosDisponiveis[0].id }
-      })
+    if (livrosDisponiveis.length > 0 && !livrosDisponiveis.some((livro) => livro.id === emprestimoForm.livro_id)) {
+      setEmprestimoForm((current) => ({ ...current, livro_id: livrosDisponiveis[0].id }))
     }
-  }, [canManageLoans, isAuthenticated, livrosDisponiveis, pessoaById, pessoas])
+  }, [canManageLoans, emprestimoForm.livro_id, emprestimoForm.pessoa_id, isAuthenticated, livrosDisponiveis, pessoaById, pessoas])
 
   async function loadLivros() {
     setLoadingLivros(true)
@@ -194,7 +232,6 @@ export function App() {
   async function loadPessoas() {
     setLoadingPessoas(true)
     setPessoaError('')
-
     try {
       const response = await apiFetch<PaginatedResponse<Pessoa>>('/api/v1/pessoas?page_size=100')
       setPessoas(response.items)
@@ -208,7 +245,6 @@ export function App() {
   async function loadEmprestimos() {
     setLoadingEmprestimos(true)
     setEmprestimoError('')
-
     try {
       const response = await apiFetch<PaginatedResponse<Emprestimo>>('/api/v1/emprestimos?page_size=100')
       setEmprestimos(response.items)
@@ -219,29 +255,18 @@ export function App() {
     }
   }
 
-  useEffect(() => {
-    loadLivros().catch(() => undefined)
-  }, [])
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setPessoas([])
-      setEmprestimos([])
-      setEmprestimoForm({ pessoa_id: '', livro_id: '' })
-      setPessoaError('')
-      setEmprestimoError('')
-      setEmprestimoSuccess('')
-      return
+  async function loadUsuarios() {
+    setLoadingUsuarios(true)
+    setUsuarioError('')
+    try {
+      const response = await apiFetch<PaginatedResponse<Usuario>>('/api/v1/usuarios?page_size=200')
+      setUsuarios(response.items)
+    } catch (error) {
+      setUsuarioError(error instanceof Error ? error.message : 'Falha ao carregar usuários')
+    } finally {
+      setLoadingUsuarios(false)
     }
-
-    if (canManageLoans) {
-      Promise.all([loadPessoas(), loadEmprestimos(), loadLivros()]).catch(() => undefined)
-      return
-    }
-
-    setPessoas([])
-    Promise.all([loadEmprestimos(), loadLivros()]).catch(() => undefined)
-  }, [canManageLoans, isAuthenticated])
+  }
 
   async function handleLogin(event: React.FormEvent) {
     event.preventDefault()
@@ -252,6 +277,7 @@ export function App() {
         method: 'POST',
         body: JSON.stringify({ username, senha }),
       })
+
       localStorage.setItem('bb_token', response.access_token)
       setToken(response.access_token)
       setUsername('')
@@ -280,23 +306,19 @@ export function App() {
       if (response.status === 'verification_required') {
         setRegisterNeedsVerification(true)
         setRegisterVerifyEmail(registerEmail)
-        setRegisterSuccess(
-          response.verification_code
-            ? `${response.message} Codigo (dev): ${response.verification_code}`
-            : response.message,
-        )
+        setRegisterSuccess(response.verification_code ? `${response.message} Código (dev): ${response.verification_code}` : response.message)
         return
       }
 
       setRegisterNeedsVerification(false)
       setRegisterVerifyEmail('')
       setRegisterVerifyCode('')
-      setUsername(registerUsername)
-      setSenha(registerSenha)
       setRegisterNome('')
       setRegisterEmail('')
       setRegisterUsername('')
       setRegisterSenha('')
+      setUsername(registerUsername)
+      setSenha(registerSenha)
       setRegisterSuccess('Cadastro concluído. Agora clique em Acessar para entrar.')
     } catch (error) {
       setRegisterError(error instanceof Error ? error.message : 'Falha no cadastro')
@@ -311,20 +333,11 @@ export function App() {
     try {
       const response = await apiFetch<RegisterResponse>('/api/v1/auth/register/verify', {
         method: 'POST',
-        body: JSON.stringify({
-          email: registerVerifyEmail,
-          code: registerVerifyCode,
-        }),
+        body: JSON.stringify({ email: registerVerifyEmail, code: registerVerifyCode }),
       })
 
       setRegisterNeedsVerification(false)
       setRegisterVerifyCode('')
-      setUsername(registerUsername)
-      setSenha(registerSenha)
-      setRegisterNome('')
-      setRegisterEmail('')
-      setRegisterUsername('')
-      setRegisterSenha('')
       setRegisterSuccess(response.message)
     } catch (error) {
       setRegisterError(error instanceof Error ? error.message : 'Falha na verificação')
@@ -352,6 +365,7 @@ export function App() {
           disponivel: livroForm.disponivel,
         }),
       })
+
       setLivroForm({ titulo: '', autor: '', isbn: '', ano_publicacao: '', disponivel: true })
       await loadLivros()
     } catch (error) {
@@ -361,7 +375,6 @@ export function App() {
 
   async function handleDeleteLivro(id: string) {
     setLivroError('')
-
     try {
       await apiFetch(`/api/v1/livros/${id}`, { method: 'DELETE' })
       await loadLivros()
@@ -378,10 +391,7 @@ export function App() {
     try {
       await apiFetch('/api/v1/emprestimos', {
         method: 'POST',
-        body: JSON.stringify({
-          pessoa_id: emprestimoForm.pessoa_id,
-          livro_id: emprestimoForm.livro_id,
-        }),
+        body: JSON.stringify({ pessoa_id: emprestimoForm.pessoa_id, livro_id: emprestimoForm.livro_id }),
       })
 
       setEmprestimoForm((current) => ({ ...current, livro_id: '' }))
@@ -397,15 +407,268 @@ export function App() {
     setEmprestimoSuccess('')
 
     try {
-      await apiFetch(`/api/v1/emprestimos/${emprestimoId}/devolver`, {
-        method: 'PATCH',
-      })
-
+      await apiFetch(`/api/v1/emprestimos/${emprestimoId}/devolver`, { method: 'PATCH' })
       setEmprestimoSuccess('Devolução registrada com sucesso.')
       await Promise.all([loadLivros(), loadEmprestimos()])
     } catch (error) {
       setEmprestimoError(error instanceof Error ? error.message : 'Falha ao devolver empréstimo')
     }
+  }
+
+  async function handleCreateUsuario(event: React.FormEvent) {
+    event.preventDefault()
+    setUsuarioError('')
+    setUsuarioSuccess('')
+
+    try {
+      await apiFetch('/api/v1/usuarios', {
+        method: 'POST',
+        body: JSON.stringify({
+          pessoa_id: usuarioForm.pessoa_id,
+          username: usuarioForm.username,
+          senha: usuarioForm.senha,
+          papel: usuarioForm.papel,
+          ativo: usuarioForm.ativo,
+        }),
+      })
+
+      setUsuarioForm({ pessoa_id: '', username: '', senha: '', papel: 'leitor', ativo: true })
+      setUsuarioSuccess('Usuário criado com sucesso.')
+      await loadUsuarios()
+    } catch (error) {
+      setUsuarioError(error instanceof Error ? error.message : 'Falha ao criar usuário')
+    }
+  }
+
+  function renderBooksSection() {
+    return (
+      <section className="panel">
+        <div className="section-head">
+          <h2>Livros</h2>
+          <button type="button" onClick={() => loadLivros().catch(() => undefined)}>
+            Recarregar
+          </button>
+        </div>
+
+        {activeTab === 'cadastrar-livro' && canManageCatalog ? (
+          <form className="card form grid-compact" onSubmit={handleCreateLivro}>
+            <h3>Novo livro</h3>
+            {livroError ? <p className="error">{livroError}</p> : null}
+            <label>
+              Título
+              <input value={livroForm.titulo} onChange={(event) => setLivroForm({ ...livroForm, titulo: event.target.value })} />
+            </label>
+            <label>
+              Autor
+              <input value={livroForm.autor} onChange={(event) => setLivroForm({ ...livroForm, autor: event.target.value })} />
+            </label>
+            <label>
+              ISBN
+              <input value={livroForm.isbn} onChange={(event) => setLivroForm({ ...livroForm, isbn: event.target.value })} />
+            </label>
+            <label>
+              Ano
+              <input value={livroForm.ano_publicacao} onChange={(event) => setLivroForm({ ...livroForm, ano_publicacao: event.target.value })} />
+            </label>
+            <label className="checkbox">
+              <input type="checkbox" checked={livroForm.disponivel} onChange={(event) => setLivroForm({ ...livroForm, disponivel: event.target.checked })} />
+              Disponível
+            </label>
+            <button type="submit">Criar livro</button>
+          </form>
+        ) : null}
+
+        <div className="list">
+          {loadingLivros ? <p>Carregando...</p> : null}
+          {!loadingLivros && livros.length === 0 ? <p>Nenhum livro encontrado.</p> : null}
+          {livros.map((livro) => (
+            <article className="card book" key={livro.id}>
+              <div>
+                <h3>{livro.titulo}</h3>
+                <p>{livro.autor}</p>
+                <small>
+                  ISBN {livro.isbn} · {livro.ano_publicacao ?? 'sem ano'}
+                </small>
+              </div>
+              <div className="book-actions">
+                <span className={livro.disponivel ? 'pill available' : 'pill unavailable'}>
+                  {livro.disponivel ? 'Disponível' : 'Indisponível'}
+                </span>
+                {canManageCatalog ? (
+                  <button type="button" className="ghost" onClick={() => handleDeleteLivro(livro.id).catch(() => undefined)}>
+                    Excluir
+                  </button>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  function renderLoansSection() {
+    return (
+      <section className="panel">
+        <div className="section-head">
+          <h2>Empréstimos</h2>
+          <button type="button" onClick={() => Promise.all([loadLivros(), loadPessoas(), loadEmprestimos()]).catch(() => undefined)}>
+            Recarregar
+          </button>
+        </div>
+
+        <div className="grid-two">
+          {canManageLoans ? (
+            <form className="card form" onSubmit={handleCreateEmprestimo}>
+              <h3>Novo empréstimo</h3>
+              {emprestimoError ? <p className="error">{emprestimoError}</p> : null}
+              {emprestimoSuccess ? <p>{emprestimoSuccess}</p> : null}
+              <label>
+                Pessoa
+                <select value={emprestimoForm.pessoa_id} onChange={(event) => setEmprestimoForm({ ...emprestimoForm, pessoa_id: event.target.value })}>
+                  <option value="">Selecione uma pessoa</option>
+                  {pessoas.map((pessoa) => (
+                    <option key={pessoa.id} value={pessoa.id}>
+                      {pessoa.nome} · {pessoa.email}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Livro disponível
+                <select value={emprestimoForm.livro_id} onChange={(event) => setEmprestimoForm({ ...emprestimoForm, livro_id: event.target.value })}>
+                  <option value="">Selecione um livro</option>
+                  {livrosDisponiveis.map((livro) => (
+                    <option key={livro.id} value={livro.id}>
+                      {livro.titulo} · {livro.autor}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="submit" disabled={pessoas.length === 0 || livrosDisponiveis.length === 0}>
+                Registrar empréstimo
+              </button>
+              {pessoaError ? <p className="error">{pessoaError}</p> : null}
+              {!loadingPessoas && pessoas.length === 0 ? <p className="help-text">Nenhuma pessoa disponível para vincular.</p> : null}
+              {!loadingLivros && livrosDisponiveis.length === 0 ? <p className="help-text">Nenhum livro disponível para empréstimo.</p> : null}
+            </form>
+          ) : (
+            <div className="card form muted">
+              <h3>Seu histórico</h3>
+              <p className="help-text">Como leitor, você pode consultar apenas os próprios empréstimos.</p>
+            </div>
+          )}
+
+          <div className="card form loan-list-card">
+            <h3>Empréstimos registrados</h3>
+            {emprestimoError ? <p className="error">{emprestimoError}</p> : null}
+            {emprestimoSuccess ? <p>{emprestimoSuccess}</p> : null}
+            {loadingEmprestimos ? <p>Carregando...</p> : null}
+            {!loadingEmprestimos && emprestimos.length === 0 ? <p>Nenhum empréstimo encontrado.</p> : null}
+            <div className="list compact">
+              {emprestimos.map((emprestimo) => {
+                const pessoa = pessoaById.get(emprestimo.pessoa_id)
+                const livro = livroById.get(emprestimo.livro_id)
+                const pessoaNome = pessoa?.nome ?? (emprestimo.pessoa_id === user?.pessoa_id ? 'Você' : emprestimo.pessoa_id)
+
+                return (
+                  <article className="card book loan" key={emprestimo.id}>
+                    <div>
+                      <h3>{livro?.titulo ?? emprestimo.livro_id}</h3>
+                      <p>{pessoaNome}</p>
+                      <small>
+                        Empréstimo em {formatDate(emprestimo.data_emprestimo)} · Previsto em {formatDate(emprestimo.data_devolucao_prevista)}
+                      </small>
+                    </div>
+                    <div className="book-actions">
+                      <span className={emprestimo.ativo ? 'pill available' : 'pill unavailable'}>
+                        {emprestimo.ativo ? 'Ativo' : 'Devolvido'}
+                      </span>
+                      {canManageLoans && emprestimo.ativo ? (
+                        <button type="button" className="ghost" onClick={() => handleReturnEmprestimo(emprestimo.id).catch(() => undefined)}>
+                          Devolver
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  function renderUsersSection() {
+    if (!canManageUsers) {
+      return null
+    }
+
+    return (
+      <section className="panel">
+        <div className="section-head">
+          <h2>Usuários</h2>
+          <button type="button" onClick={() => loadUsuarios().catch(() => undefined)}>
+            Recarregar
+          </button>
+        </div>
+
+        {activeTab === 'cadastrar-usuario' ? (
+          <form className="card form grid-compact" onSubmit={handleCreateUsuario}>
+            <h3>Novo usuário</h3>
+            {usuarioError ? <p className="error">{usuarioError}</p> : null}
+            {usuarioSuccess ? <p>{usuarioSuccess}</p> : null}
+            <label>
+              Pessoa
+              <select value={usuarioForm.pessoa_id} onChange={(event) => setUsuarioForm({ ...usuarioForm, pessoa_id: event.target.value })}>
+                <option value="">Selecione uma pessoa</option>
+                {pessoas.map((pessoa) => (
+                  <option key={pessoa.id} value={pessoa.id}>
+                    {pessoa.nome} · {pessoa.email}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Username
+              <input value={usuarioForm.username} onChange={(event) => setUsuarioForm({ ...usuarioForm, username: event.target.value })} />
+            </label>
+            <label>
+              Senha
+              <input type="password" value={usuarioForm.senha} onChange={(event) => setUsuarioForm({ ...usuarioForm, senha: event.target.value })} />
+            </label>
+            <label>
+              Papel
+              <select value={usuarioForm.papel} onChange={(event) => setUsuarioForm({ ...usuarioForm, papel: event.target.value as Papel })}>
+                <option value="leitor">leitor</option>
+                <option value="atendente">atendente</option>
+                <option value="admin">admin</option>
+              </select>
+            </label>
+            <label className="checkbox">
+              <input type="checkbox" checked={usuarioForm.ativo} onChange={(event) => setUsuarioForm({ ...usuarioForm, ativo: event.target.checked })} />
+              Ativo
+            </label>
+            <button type="submit">Criar usuário</button>
+          </form>
+        ) : null}
+
+        <div className="list">
+          {loadingUsuarios ? <p>Carregando usuários...</p> : null}
+          {!loadingUsuarios && usuarios.length === 0 ? <p>Nenhum usuário encontrado.</p> : null}
+          {usuarios.map((usuarioItem) => (
+            <article className="card book" key={usuarioItem.id}>
+              <div>
+                <h3>{usuarioItem.username}</h3>
+                <p>Pessoa: {usuarioItem.pessoa_id}</p>
+                <small>Papel: {usuarioItem.papel}</small>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -414,10 +677,8 @@ export function App() {
         <section className="hero">
           <div>
             <p className="eyebrow">Boa Biblioteca</p>
-            <h1>Catálogo operacional com base neutra e foco no fluxo.</h1>
-            <p className="lead">
-              Login JWT, lista pública de livros e ações protegidas já integradas à API.
-            </p>
+            <h1>Catálogo operacional com foco no fluxo.</h1>
+            <p className="lead">Login JWT, catálogo público e áreas protegidas para admin já integradas à API.</p>
           </div>
           <div className="status-card">
             <span>Status</span>
@@ -455,26 +716,15 @@ export function App() {
               </label>
               <label>
                 Email
-                <input
-                  type="email"
-                  value={registerEmail}
-                  onChange={(event) => setRegisterEmail(event.target.value)}
-                />
+                <input type="email" value={registerEmail} onChange={(event) => setRegisterEmail(event.target.value)} />
               </label>
               <label>
                 Usuário
-                <input
-                  value={registerUsername}
-                  onChange={(event) => setRegisterUsername(event.target.value)}
-                />
+                <input value={registerUsername} onChange={(event) => setRegisterUsername(event.target.value)} />
               </label>
               <label>
                 Senha
-                <input
-                  type="password"
-                  value={registerSenha}
-                  onChange={(event) => setRegisterSenha(event.target.value)}
-                />
+                <input type="password" value={registerSenha} onChange={(event) => setRegisterSenha(event.target.value)} />
               </label>
               {registerError ? <p className="error">{registerError}</p> : null}
               {registerSuccess ? <p>{registerSuccess}</p> : null}
@@ -486,18 +736,11 @@ export function App() {
                   <h3>Validar código</h3>
                   <label>
                     Email
-                    <input
-                      type="email"
-                      value={registerVerifyEmail}
-                      onChange={(event) => setRegisterVerifyEmail(event.target.value)}
-                    />
+                    <input type="email" value={registerVerifyEmail} onChange={(event) => setRegisterVerifyEmail(event.target.value)} />
                   </label>
                   <label>
                     Código
-                    <input
-                      value={registerVerifyCode}
-                      onChange={(event) => setRegisterVerifyCode(event.target.value)}
-                    />
+                    <input value={registerVerifyCode} onChange={(event) => setRegisterVerifyCode(event.target.value)} />
                   </label>
                   <button type="button" onClick={(event) => void handleRegisterVerify(event)}>
                     Confirmar código
@@ -508,194 +751,44 @@ export function App() {
           </section>
         ) : null}
 
-        <section className="panel">
-          <div className="section-head">
-            <h2>Livros</h2>
-            <button type="button" onClick={() => loadLivros().catch(() => undefined)}>
-              Recarregar
-            </button>
-          </div>
-
-          {isAuthenticated && canManageCatalog ? (
-            <form className="card form grid-compact" onSubmit={handleCreateLivro}>
-              <h3>Novo livro</h3>
-              {livroError ? <p className="error">{livroError}</p> : null}
-              <label>
-                Título
-                <input value={livroForm.titulo} onChange={(event) => setLivroForm({ ...livroForm, titulo: event.target.value })} />
-              </label>
-              <label>
-                Autor
-                <input value={livroForm.autor} onChange={(event) => setLivroForm({ ...livroForm, autor: event.target.value })} />
-              </label>
-              <label>
-                ISBN
-                <input value={livroForm.isbn} onChange={(event) => setLivroForm({ ...livroForm, isbn: event.target.value })} />
-              </label>
-              <label>
-                Ano
-                <input value={livroForm.ano_publicacao} onChange={(event) => setLivroForm({ ...livroForm, ano_publicacao: event.target.value })} />
-              </label>
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={livroForm.disponivel}
-                  onChange={(event) => setLivroForm({ ...livroForm, disponivel: event.target.checked })}
-                />
-                Disponível
-              </label>
-              <button type="submit">Criar livro</button>
-            </form>
-          ) : null}
-
-          <div className="list">
-            {loadingLivros ? <p>Carregando...</p> : null}
-            {!loadingLivros && livros.length === 0 ? <p>Nenhum livro encontrado.</p> : null}
-            {livros.map((livro) => (
-              <article className="card book" key={livro.id}>
-                <div>
-                  <h3>{livro.titulo}</h3>
-                  <p>{livro.autor}</p>
-                  <small>
-                    ISBN {livro.isbn} · {livro.ano_publicacao ?? 'sem ano'}
-                  </small>
-                </div>
-                <div className="book-actions">
-                  <span className={livro.disponivel ? 'pill available' : 'pill unavailable'}>
-                    {livro.disponivel ? 'Disponível' : 'Indisponível'}
-                  </span>
-                  {isAuthenticated && canManageCatalog ? (
-                    <button type="button" className="ghost" onClick={() => handleDeleteLivro(livro.id).catch(() => undefined)}>
-                      Excluir
-                    </button>
-                  ) : null}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
         {isAuthenticated ? (
-          <section className="panel">
-            <div className="section-head">
-              <h2>Empréstimos</h2>
-              <button
-                type="button"
-                onClick={() => Promise.all([loadLivros(), loadPessoas(), loadEmprestimos()]).catch(() => undefined)}
-              >
-                Recarregar
-              </button>
+          <section className="panel tabs-panel">
+            <div className="tabs" role="tablist" aria-label="Seções da biblioteca">
+              <TabButton active={activeTab === 'livros'} onClick={() => setActiveTab('livros')}>
+                Consultar Livros
+              </TabButton>
+              {canManageCatalog ? (
+                <>
+                  <TabButton active={activeTab === 'cadastrar-livro'} onClick={() => setActiveTab('cadastrar-livro')}>
+                    Cadastro de Livro
+                  </TabButton>
+                  <TabButton active={activeTab === 'registrar-emprestimo'} onClick={() => setActiveTab('registrar-emprestimo')}>
+                    Realizar Empréstimo
+                  </TabButton>
+                </>
+              ) : null}
+              <TabButton active={activeTab === 'emprestimos'} onClick={() => setActiveTab('emprestimos')}>
+                Consultar Empréstimos
+              </TabButton>
+              {canManageUsers ? (
+                <>
+                  <TabButton active={activeTab === 'cadastrar-usuario'} onClick={() => setActiveTab('cadastrar-usuario')}>
+                    Cadastro de Usuário
+                  </TabButton>
+                  <TabButton active={activeTab === 'usuarios'} onClick={() => setActiveTab('usuarios')}>
+                    Consultar Usuários
+                  </TabButton>
+                </>
+              ) : null}
             </div>
 
-            <div className="grid-two">
-              {canManageLoans ? (
-                <form className="card form" onSubmit={handleCreateEmprestimo}>
-                  <h3>Novo empréstimo</h3>
-                  {emprestimoError ? <p className="error">{emprestimoError}</p> : null}
-                  {emprestimoSuccess ? <p>{emprestimoSuccess}</p> : null}
-
-                  <label>
-                    Pessoa
-                    <select
-                      value={emprestimoForm.pessoa_id}
-                      onChange={(event) =>
-                        setEmprestimoForm({ ...emprestimoForm, pessoa_id: event.target.value })
-                      }
-                    >
-                      <option value="">Selecione uma pessoa</option>
-                      {pessoas.map((pessoa) => (
-                        <option key={pessoa.id} value={pessoa.id}>
-                          {pessoa.nome} · {pessoa.email}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label>
-                    Livro disponível
-                    <select
-                      value={emprestimoForm.livro_id}
-                      onChange={(event) =>
-                        setEmprestimoForm({ ...emprestimoForm, livro_id: event.target.value })
-                      }
-                    >
-                      <option value="">Selecione um livro</option>
-                      {livrosDisponiveis.map((livro) => (
-                        <option key={livro.id} value={livro.id}>
-                          {livro.titulo} · {livro.autor}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <button type="submit" disabled={pessoas.length === 0 || livrosDisponiveis.length === 0}>
-                    Registrar empréstimo
-                  </button>
-
-                  {pessoaError ? <p className="error">{pessoaError}</p> : null}
-                  {!loadingPessoas && pessoas.length === 0 ? (
-                    <p className="help-text">Nenhuma pessoa disponível para vincular.</p>
-                  ) : null}
-                  {!loadingLivros && livrosDisponiveis.length === 0 ? (
-                    <p className="help-text">Nenhum livro disponível para empréstimo.</p>
-                  ) : null}
-                </form>
-              ) : (
-                <div className="card form muted">
-                  <h3>Seu histórico</h3>
-                  <p className="help-text">
-                    Como leitor, você pode consultar apenas os próprios empréstimos.
-                  </p>
-                </div>
-              )}
-
-              <div className="card form loan-list-card">
-                <h3>Empréstimos registrados</h3>
-                {emprestimoError ? <p className="error">{emprestimoError}</p> : null}
-                {emprestimoSuccess ? <p>{emprestimoSuccess}</p> : null}
-                {loadingEmprestimos ? <p>Carregando...</p> : null}
-                {!loadingEmprestimos && emprestimos.length === 0 ? <p>Nenhum empréstimo encontrado.</p> : null}
-
-                <div className="list compact">
-                  {emprestimos.map((emprestimo) => {
-                    const pessoa = pessoaById.get(emprestimo.pessoa_id)
-                    const livro = livroById.get(emprestimo.livro_id)
-                    const pessoaNome =
-                      pessoa?.nome ??
-                      (emprestimo.pessoa_id === user?.pessoa_id ? 'Você' : emprestimo.pessoa_id)
-
-                    return (
-                      <article className="card book loan" key={emprestimo.id}>
-                        <div>
-                          <h3>{livro?.titulo ?? emprestimo.livro_id}</h3>
-                          <p>{pessoaNome}</p>
-                          <small>
-                            Empréstimo em {formatDate(emprestimo.data_emprestimo)} · Previsto em{' '}
-                            {formatDate(emprestimo.data_devolucao_prevista)}
-                          </small>
-                        </div>
-                        <div className="book-actions">
-                          <span className={emprestimo.ativo ? 'pill available' : 'pill unavailable'}>
-                            {emprestimo.ativo ? 'Ativo' : 'Devolvido'}
-                          </span>
-                          {canManageLoans && emprestimo.ativo ? (
-                            <button
-                              type="button"
-                              className="ghost"
-                              onClick={() => handleReturnEmprestimo(emprestimo.id).catch(() => undefined)}
-                            >
-                              Devolver
-                            </button>
-                          ) : null}
-                        </div>
-                      </article>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
+            {activeTab === 'livros' || activeTab === 'cadastrar-livro' ? renderBooksSection() : null}
+            {activeTab === 'emprestimos' || activeTab === 'registrar-emprestimo' ? renderLoansSection() : null}
+            {activeTab === 'cadastrar-usuario' || activeTab === 'usuarios' ? renderUsersSection() : null}
           </section>
-        ) : null}
+        ) : (
+          renderBooksSection()
+        )}
       </main>
     </div>
   )
