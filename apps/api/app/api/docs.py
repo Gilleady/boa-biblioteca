@@ -5,6 +5,11 @@ AUTH_401_RESPONSE = {
     "description": "Authentication is required or token is invalid.",
 }
 
+FORBIDDEN_403_RESPONSE = {
+    "model": ErrorResponse,
+    "description": "Authenticated user does not have enough permissions.",
+}
+
 INVALID_CREDENTIALS_401_RESPONSE = {
     "model": ErrorResponse,
     "description": "Invalid username or password.",

@@ -36,7 +36,10 @@ class PessoaRead(PessoaBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
+    created_by: UUID | None = None
+    updated_by: UUID | None = None
     created_at: datetime
+    updated_at: datetime | None = None
 
 
 class PessoaListResponse(PaginatedResponse[PessoaRead]):

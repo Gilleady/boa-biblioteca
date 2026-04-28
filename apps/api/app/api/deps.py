@@ -1,7 +1,11 @@
+from collections.abc import Callable
+from uuid import UUID
+
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.roles import ROLE_ADMIN, ROLE_ATENDENTE, ROLE_LEITOR
 from app.core.security import decode_access_token
 from app.db.session import get_async_session
 from app.models.usuario import Usuario
@@ -50,3 +54,36 @@ async def get_current_usuario(
         )
 
     return usuario
+
+
+def require_roles(*allowed_roles: str) -> Callable[..., Usuario]:
+    async def dependency(usuario: Usuario = Security(get_current_usuario)) -> Usuario:
+        if usuario.papel not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions",
+            )
+        return usuario
+
+    return dependency
+
+
+get_admin_or_atendente = require_roles(ROLE_ADMIN, ROLE_ATENDENTE)
+get_leitor = require_roles(ROLE_LEITOR)
+
+
+def resolve_emprestimo_scope_pessoa_id(
+    *,
+    usuario: Usuario,
+    requested_pessoa_id: UUID | None,
+) -> UUID | None:
+    if usuario.papel != ROLE_LEITOR:
+        return requested_pessoa_id
+
+    if requested_pessoa_id is not None and requested_pessoa_id != usuario.pessoa_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Leitor can only access own loans",
+        )
+
+    return usuario.pessoa_id

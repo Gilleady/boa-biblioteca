@@ -50,11 +50,20 @@ class PessoaService:
 
         return PessoaRead.model_validate(pessoa)
 
-    async def create(self, payload: PessoaCreate) -> PessoaRead:
-        pessoa = await self._repository.create(payload)
+    async def create(
+        self,
+        payload: PessoaCreate,
+        actor_id: UUID | None = None,
+    ) -> PessoaRead:
+        pessoa = await self._repository.create(payload, actor_id=actor_id)
         return PessoaRead.model_validate(pessoa)
 
-    async def update(self, pessoa_id: UUID, payload: PessoaUpdate) -> PessoaRead:
+    async def update(
+        self,
+        pessoa_id: UUID,
+        payload: PessoaUpdate,
+        actor_id: UUID | None = None,
+    ) -> PessoaRead:
         pessoa = await self._repository.get_by_id(pessoa_id)
         if pessoa is None:
             raise AppError(
@@ -64,7 +73,11 @@ class PessoaService:
                 details={"id": str(pessoa_id)},
             )
 
-        updated = await self._repository.update(pessoa, payload)
+        updated = await self._repository.update(
+            pessoa,
+            payload,
+            actor_id=actor_id,
+        )
         return PessoaRead.model_validate(updated)
 
     async def delete(self, pessoa_id: UUID) -> None:

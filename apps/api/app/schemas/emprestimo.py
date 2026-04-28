@@ -25,6 +25,8 @@ class EmprestimoRead(EmprestimoBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
+    created_by: UUID | None = None
+    updated_by: UUID | None = None
     data_emprestimo: datetime
     data_devolucao_prevista: datetime
     data_devolucao_real: datetime | None

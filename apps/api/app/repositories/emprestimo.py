@@ -63,7 +63,11 @@ class EmprestimoRepository:
         return result.scalar_one_or_none()
 
     async def create(
-        self, pessoa_id: UUID, livro_id: UUID, dias_emprestimo: int
+        self,
+        pessoa_id: UUID,
+        livro_id: UUID,
+        dias_emprestimo: int,
+        actor_id: UUID | None = None,
     ) -> Emprestimo:
         now = datetime.now().astimezone()
         data_devolucao_prevista = now + timedelta(days=dias_emprestimo)
@@ -74,14 +78,23 @@ class EmprestimoRepository:
             data_emprestimo=now,
             data_devolucao_prevista=data_devolucao_prevista,
         )
+        if actor_id is not None:
+            emprestimo.created_by = actor_id
+            emprestimo.updated_by = actor_id
         self._session.add(emprestimo)
         await self._session.commit()
         await self._session.refresh(emprestimo)
         return emprestimo
 
-    async def devolucao(self, emprestimo: Emprestimo) -> Emprestimo:
+    async def devolucao(
+        self,
+        emprestimo: Emprestimo,
+        actor_id: UUID | None = None,
+    ) -> Emprestimo:
         emprestimo.data_devolucao_real = datetime.now().astimezone()
         emprestimo.ativo = False
+        if actor_id is not None:
+            emprestimo.updated_by = actor_id
 
         await self._session.commit()
         await self._session.refresh(emprestimo)

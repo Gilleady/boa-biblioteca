@@ -47,10 +47,25 @@ class UsuarioRepository:
         )
         return result.scalar_one_or_none()
 
-    async def create(self, payload: UsuarioCreate) -> Usuario:
+    async def get_by_pessoa_id(self, pessoa_id: UUID) -> Usuario | None:
+        result = await self._session.execute(
+            select(Usuario).where(Usuario.pessoa_id == pessoa_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_by_username(self, username: str) -> Usuario | None:
+        result = await self._session.execute(
+            select(Usuario).where(Usuario.username == username)
+        )
+        return result.scalar_one_or_none()
+
+    async def create(self, payload: UsuarioCreate, actor_id: UUID | None = None) -> Usuario:
         data = payload.model_dump()
         # Hash the senha before storing
         data["senha_hash"] = hash_password(data.pop("senha"))
+        if actor_id is not None:
+            data["created_by"] = actor_id
+            data["updated_by"] = actor_id
         usuario = Usuario(**data)
         self._session.add(usuario)
 
@@ -68,13 +83,21 @@ class UsuarioRepository:
         await self._session.refresh(usuario)
         return usuario
 
-    async def update(self, usuario: Usuario, payload: UsuarioUpdate) -> Usuario:
+    async def update(
+        self,
+        usuario: Usuario,
+        payload: UsuarioUpdate,
+        actor_id: UUID | None = None,
+    ) -> Usuario:
         for field, value in payload.model_dump(exclude_unset=True).items():
             # Hash the senha if it's being updated
             if field == "senha" and value is not None:
                 usuario.senha_hash = hash_password(value)
             else:
                 setattr(usuario, field, value)
+
+        if actor_id is not None:
+            usuario.updated_by = actor_id
 
         try:
             await self._session.commit()

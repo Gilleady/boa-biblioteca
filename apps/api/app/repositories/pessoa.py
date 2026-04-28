@@ -46,14 +46,23 @@ class PessoaRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_email(self, email: str) -> Pessoa | None:
+        result = await self._session.execute(
+            select(Pessoa).where(Pessoa.email == email)
+        )
+        return result.scalar_one_or_none()
+
     async def exists_by_id(self, pessoa_id: UUID) -> bool:
         result = await self._session.execute(
             select(func.count()).select_from(Pessoa).where(Pessoa.id == pessoa_id)
         )
         return bool(result.scalar_one())
 
-    async def create(self, payload: PessoaCreate) -> Pessoa:
+    async def create(self, payload: PessoaCreate, actor_id: UUID | None = None) -> Pessoa:
         pessoa = Pessoa(**payload.model_dump())
+        if actor_id is not None:
+            pessoa.created_by = actor_id
+            pessoa.updated_by = actor_id
         self._session.add(pessoa)
 
         try:
@@ -70,9 +79,17 @@ class PessoaRepository:
         await self._session.refresh(pessoa)
         return pessoa
 
-    async def update(self, pessoa: Pessoa, payload: PessoaUpdate) -> Pessoa:
+    async def update(
+        self,
+        pessoa: Pessoa,
+        payload: PessoaUpdate,
+        actor_id: UUID | None = None,
+    ) -> Pessoa:
         for field, value in payload.model_dump(exclude_unset=True).items():
             setattr(pessoa, field, value)
+
+        if actor_id is not None:
+            pessoa.updated_by = actor_id
 
         try:
             await self._session.commit()

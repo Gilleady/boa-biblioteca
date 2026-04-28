@@ -64,7 +64,11 @@ class EmprestimoService:
 
         return EmprestimoRead.model_validate(emprestimo)
 
-    async def create(self, payload: EmprestimoCreate) -> EmprestimoRead:
+    async def create(
+        self,
+        payload: EmprestimoCreate,
+        actor_id: UUID | None = None,
+    ) -> EmprestimoRead:
         """
         Create a new loan with business rule validation:
         - Person must exist and be active
@@ -114,6 +118,7 @@ class EmprestimoService:
             pessoa_id=payload.pessoa_id,
             livro_id=payload.livro_id,
             dias_emprestimo=livro.dias_emprestimo_padrao or 7,
+            actor_id=actor_id,
         )
 
         # Mark book as unavailable
@@ -124,7 +129,11 @@ class EmprestimoService:
 
         return EmprestimoRead.model_validate(emprestimo)
 
-    async def devolucao(self, emprestimo_id: UUID) -> EmprestimoRead:
+    async def devolucao(
+        self,
+        emprestimo_id: UUID,
+        actor_id: UUID | None = None,
+    ) -> EmprestimoRead:
         """
         Mark a loan as returned:
         - Loan must exist and be active
@@ -149,7 +158,7 @@ class EmprestimoService:
             )
 
         # Mark as returned
-        returned = await self._repository.devolucao(emprestimo)
+        returned = await self._repository.devolucao(emprestimo, actor_id=actor_id)
 
         # Mark book as available again
         livro = await self._livro_repository.get_by_id(emprestimo.livro_id)

@@ -3,15 +3,21 @@ from __future__ import annotations
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Security, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Security, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_usuario
+from app.api.deps import (
+    get_admin_or_atendente,
+    get_current_usuario,
+    resolve_emprestimo_scope_pessoa_id,
+)
 from app.api.docs import (
     AUTH_401_RESPONSE,
+    FORBIDDEN_403_RESPONSE,
     NOT_FOUND_404_RESPONSE,
     VALIDATION_422_RESPONSE,
 )
+from app.core.roles import ROLE_LEITOR
 from app.db.session import get_async_session
 from app.models.usuario import Usuario
 from app.repositories.emprestimo import EmprestimoRepository
@@ -42,7 +48,11 @@ def get_emprestimo_service(
     response_model=EmprestimoListResponse,
     summary="List loans",
     description="Returns paginated loans with optional filters.",
-    responses={422: VALIDATION_422_RESPONSE},
+    responses={
+        401: AUTH_401_RESPONSE,
+        403: FORBIDDEN_403_RESPONSE,
+        422: VALIDATION_422_RESPONSE,
+    },
 )
 async def list_emprestimos(
     page: int = Query(default=1, ge=1),
@@ -51,12 +61,18 @@ async def list_emprestimos(
     ativo: bool | None = None,
     order_by: Literal["created_at", "data_emprestimo"] = "created_at",
     order_direction: Literal["asc", "desc"] = "desc",
+    usuario: Usuario = Security(get_current_usuario),
     service: EmprestimoService = Depends(get_emprestimo_service),
 ) -> EmprestimoListResponse:
+    scoped_pessoa_id = resolve_emprestimo_scope_pessoa_id(
+        usuario=usuario,
+        requested_pessoa_id=pessoa_id,
+    )
+
     return await service.list(
         page=page,
         page_size=page_size,
-        pessoa_id=pessoa_id,
+        pessoa_id=scoped_pessoa_id,
         ativo=ativo,
         order_by=order_by,
         order_direction=order_direction,
@@ -67,13 +83,26 @@ async def list_emprestimos(
     "/{emprestimo_id}",
     response_model=EmprestimoRead,
     summary="Get loan by id",
-    responses={404: NOT_FOUND_404_RESPONSE},
+    responses={
+        401: AUTH_401_RESPONSE,
+        403: FORBIDDEN_403_RESPONSE,
+        404: NOT_FOUND_404_RESPONSE,
+    },
 )
 async def get_emprestimo(
     emprestimo_id: UUID,
+    usuario: Usuario = Security(get_current_usuario),
     service: EmprestimoService = Depends(get_emprestimo_service),
 ) -> EmprestimoRead:
-    return await service.get(emprestimo_id)
+    emprestimo = await service.get(emprestimo_id)
+
+    if usuario.papel == ROLE_LEITOR and emprestimo.pessoa_id != usuario.pessoa_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Leitor can only access own loans",
+        )
+
+    return emprestimo
 
 
 @router.post(
@@ -84,6 +113,7 @@ async def get_emprestimo(
     description="Create a loan for a person to borrow a book.",
     responses={
         401: AUTH_401_RESPONSE,
+        403: FORBIDDEN_403_RESPONSE,
         404: NOT_FOUND_404_RESPONSE,
         409: {
             "description": "Conflict - book unavailable or person has active loan",
@@ -97,9 +127,9 @@ async def get_emprestimo(
 async def create_emprestimo(
     payload: EmprestimoCreate,
     service: EmprestimoService = Depends(get_emprestimo_service),
-    _: Usuario = Security(get_current_usuario),
+    actor: Usuario = Security(get_admin_or_atendente),
 ) -> EmprestimoRead:
-    return await service.create(payload)
+    return await service.create(payload, actor_id=actor.id)
 
 
 @router.patch(
@@ -109,6 +139,7 @@ async def create_emprestimo(
     description="Mark a loan as returned and make the book available again.",
     responses={
         401: AUTH_401_RESPONSE,
+        403: FORBIDDEN_403_RESPONSE,
         404: NOT_FOUND_404_RESPONSE,
         409: {
             "description": "Conflict - loan is not active",
@@ -121,6 +152,6 @@ async def create_emprestimo(
 async def devolucao_emprestimo(
     emprestimo_id: UUID,
     service: EmprestimoService = Depends(get_emprestimo_service),
-    _: Usuario = Security(get_current_usuario),
+    actor: Usuario = Security(get_admin_or_atendente),
 ) -> EmprestimoRead:
-    return await service.devolucao(emprestimo_id)
+    return await service.devolucao(emprestimo_id, actor_id=actor.id)

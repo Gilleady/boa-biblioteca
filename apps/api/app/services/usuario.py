@@ -56,12 +56,21 @@ class UsuarioService:
 
         return UsuarioRead.model_validate(usuario)
 
-    async def create(self, payload: UsuarioCreate) -> UsuarioRead:
+    async def create(
+        self,
+        payload: UsuarioCreate,
+        actor_id: UUID | None = None,
+    ) -> UsuarioRead:
         await self._ensure_pessoa_exists(payload.pessoa_id)
-        usuario = await self._usuario_repository.create(payload)
+        usuario = await self._usuario_repository.create(payload, actor_id=actor_id)
         return UsuarioRead.model_validate(usuario)
 
-    async def update(self, usuario_id: UUID, payload: UsuarioUpdate) -> UsuarioRead:
+    async def update(
+        self,
+        usuario_id: UUID,
+        payload: UsuarioUpdate,
+        actor_id: UUID | None = None,
+    ) -> UsuarioRead:
         usuario = await self._usuario_repository.get_by_id(usuario_id)
         if usuario is None:
             raise AppError(
@@ -74,7 +83,11 @@ class UsuarioService:
         if payload.pessoa_id is not None:
             await self._ensure_pessoa_exists(payload.pessoa_id)
 
-        updated = await self._usuario_repository.update(usuario, payload)
+        updated = await self._usuario_repository.update(
+            usuario,
+            payload,
+            actor_id=actor_id,
+        )
         return UsuarioRead.model_validate(updated)
 
     async def delete(self, usuario_id: UUID) -> None:

@@ -29,6 +29,12 @@ class Emprestimo(Base):
         DateTime(timezone=True), nullable=True
     )
     ativo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("usuarios.id"), nullable=True
+    )
+    updated_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("usuarios.id"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

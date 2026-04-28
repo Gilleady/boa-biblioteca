@@ -6,9 +6,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, Response, Security, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_usuario
+from app.api.deps import get_admin_or_atendente
 from app.api.docs import (
     AUTH_401_RESPONSE,
+    FORBIDDEN_403_RESPONSE,
     INVALID_PAYLOAD_400_RESPONSE,
     NOT_FOUND_404_RESPONSE,
     VALIDATION_422_RESPONSE,
@@ -77,12 +78,16 @@ async def get_livro(
     response_model=LivroRead,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new book",
-    responses={401: AUTH_401_RESPONSE, 422: VALIDATION_422_RESPONSE},
+    responses={
+        401: AUTH_401_RESPONSE,
+        403: FORBIDDEN_403_RESPONSE,
+        422: VALIDATION_422_RESPONSE,
+    },
 )
 async def create_livro(
     payload: LivroCreate,
     service: LivroService = Depends(get_livro_service),
-    _: Usuario = Security(get_current_usuario),
+    _: Usuario = Security(get_admin_or_atendente),
 ) -> LivroRead:
     return await service.create(payload)
 
@@ -94,6 +99,7 @@ async def create_livro(
     responses={
         400: INVALID_PAYLOAD_400_RESPONSE,
         401: AUTH_401_RESPONSE,
+        403: FORBIDDEN_403_RESPONSE,
         404: NOT_FOUND_404_RESPONSE,
         422: VALIDATION_422_RESPONSE,
     },
@@ -102,7 +108,7 @@ async def update_livro(
     livro_id: UUID,
     payload: LivroUpdate,
     service: LivroService = Depends(get_livro_service),
-    _: Usuario = Security(get_current_usuario),
+    _: Usuario = Security(get_admin_or_atendente),
 ) -> LivroRead:
     if not payload.model_dump(exclude_unset=True):
         raise AppError(
@@ -118,12 +124,16 @@ async def update_livro(
     "/{livro_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a book",
-    responses={401: AUTH_401_RESPONSE, 404: NOT_FOUND_404_RESPONSE},
+    responses={
+        401: AUTH_401_RESPONSE,
+        403: FORBIDDEN_403_RESPONSE,
+        404: NOT_FOUND_404_RESPONSE,
+    },
 )
 async def delete_livro(
     livro_id: UUID,
     service: LivroService = Depends(get_livro_service),
-    _: Usuario = Security(get_current_usuario),
+    _: Usuario = Security(get_admin_or_atendente),
 ) -> Response:
     await service.delete(livro_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
