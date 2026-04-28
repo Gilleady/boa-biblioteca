@@ -1,28 +1,38 @@
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from app.core.security import hash_password
+from app.models.pessoa import Pessoa
+from app.models.usuario import Usuario
 
 
-async def _auth_headers(client: AsyncClient, suffix: str) -> dict[str, str]:
-    pessoa_response = await client.post(
-        "/api/v1/pessoas",
-        json={"nome": f"Auth {suffix}", "email": f"auth.{suffix}@example.com"},
-    )
-    pessoa_id = pessoa_response.json()["id"]
+async def _auth_headers(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+    suffix: str,
+) -> dict[str, str]:
+    username = f"auth_{suffix}"
+    senha = "securepass123"
 
-    usuario_response = await client.post(
-        "/api/v1/usuarios",
-        json={
-            "pessoa_id": pessoa_id,
-            "username": f"auth_{suffix}",
-            "senha": "securepass123",
-            "ativo": True,
-        },
-    )
-    assert usuario_response.status_code == 201
+    async with test_session_maker() as session:
+        pessoa = Pessoa(nome=f"Auth {suffix}", email=f"auth.{suffix}@example.com")
+        session.add(pessoa)
+        await session.flush()
+
+        usuario = Usuario(
+            pessoa_id=pessoa.id,
+            username=username,
+            senha_hash=hash_password(senha),
+            ativo=True,
+            papel="admin",
+        )
+        session.add(usuario)
+        await session.commit()
 
     login_response = await client.post(
         "/api/v1/auth/login",
-        json={"username": f"auth_{suffix}", "senha": "securepass123"},
+        json={"username": username, "senha": senha},
     )
     assert login_response.status_code == 200
     token = login_response.json()["access_token"]
@@ -30,8 +40,11 @@ async def _auth_headers(client: AsyncClient, suffix: str) -> dict[str, str]:
 
 
 @pytest.mark.asyncio
-async def test_create_and_get_livro(client: AsyncClient) -> None:
-    headers = await _auth_headers(client, "create_and_get")
+async def test_create_and_get_livro(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "create_and_get")
 
     payload = {
         "titulo": "Clean Architecture",
@@ -55,8 +68,11 @@ async def test_create_and_get_livro(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_list_livros_supports_pagination_and_filters(client: AsyncClient) -> None:
-    headers = await _auth_headers(client, "list_filters")
+async def test_list_livros_supports_pagination_and_filters(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "list_filters")
 
     await client.post(
         "/api/v1/livros",
@@ -96,8 +112,11 @@ async def test_list_livros_supports_pagination_and_filters(client: AsyncClient) 
 
 
 @pytest.mark.asyncio
-async def test_update_and_delete_livro(client: AsyncClient) -> None:
-    headers = await _auth_headers(client, "update_delete")
+async def test_update_and_delete_livro(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "update_delete")
 
     create_response = await client.post(
         "/api/v1/livros",
@@ -133,8 +152,9 @@ async def test_update_and_delete_livro(client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_create_livro_returns_conflict_for_duplicate_isbn(
     client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
 ) -> None:
-    headers = await _auth_headers(client, "duplicate_isbn")
+    headers = await _auth_headers(client, test_session_maker, "duplicate_isbn")
 
     payload = {
         "titulo": "Patterns of Enterprise Application Architecture",
@@ -157,8 +177,9 @@ async def test_create_livro_returns_conflict_for_duplicate_isbn(
 @pytest.mark.asyncio
 async def test_update_livro_with_empty_payload_returns_bad_request(
     client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
 ) -> None:
-    headers = await _auth_headers(client, "empty_payload")
+    headers = await _auth_headers(client, test_session_maker, "empty_payload")
 
     create_response = await client.post(
         "/api/v1/livros",
@@ -183,8 +204,11 @@ async def test_update_livro_with_empty_payload_returns_bad_request(
 
 
 @pytest.mark.asyncio
-async def test_validation_error_payload_shape(client: AsyncClient) -> None:
-    headers = await _auth_headers(client, "validation_shape")
+async def test_validation_error_payload_shape(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "validation_shape")
 
     response = await client.post(
         "/api/v1/livros",
@@ -208,8 +232,9 @@ async def test_validation_error_payload_shape(client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_list_livros_supports_author_year_and_ordering(
     client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
 ) -> None:
-    headers = await _auth_headers(client, "author_year_order")
+    headers = await _auth_headers(client, test_session_maker, "author_year_order")
 
     await client.post(
         "/api/v1/livros",
