@@ -141,6 +141,19 @@ export function App() {
 
   const [submittingLeitor, setSubmittingLeitor] = useState(false)
 
+  const [detailsPessoaId, setDetailsPessoaId] = useState<string | null>(null)
+  const [detailsLoading, setDetailsLoading] = useState(false)
+  const [detailsError, setDetailsError] = useState('')
+  const [detailsSuccess, setDetailsSuccess] = useState('')
+  const [detailsSubmitting, setDetailsSubmitting] = useState(false)
+  const [detailsForm, setDetailsForm] = useState({
+    nome: '',
+    email: '',
+    username: '',
+    papel: 'leitor' as Papel,
+    ativo: true,
+  })
+
   const [livroForm, setLivroForm] = useState({ titulo: '', autor: '', isbn: '', ano_publicacao: '', disponivel: true })
   const [emprestimoForm, setEmprestimoForm] = useState({ pessoa_id: '', livro_id: '' })
   const [leitorForm, setLeitorForm] = useState({
@@ -550,6 +563,190 @@ export function App() {
     }
   }
 
+  async function handleOpenDetails(pessoaId: string) {
+    setDetailsPessoaId(pessoaId)
+    setDetailsLoading(true)
+    setDetailsError('')
+    setDetailsSuccess('')
+
+    try {
+      const pessoa = await apiFetch<Pessoa>(`/api/v1/pessoas/${pessoaId}`)
+      const usuario = usuariosByPessoaId.get(pessoaId)
+
+      setDetailsForm({
+        nome: pessoa.nome,
+        email: pessoa.email,
+        username: usuario?.username ?? '',
+        papel: usuario?.papel ?? 'leitor',
+        ativo: usuario?.ativo ?? true,
+      })
+    } catch (error) {
+      setDetailsError(error instanceof Error ? error.message : 'Falha ao carregar detalhes')
+    } finally {
+      setDetailsLoading(false)
+    }
+  }
+
+  function handleCloseDetails() {
+    setDetailsPessoaId(null)
+    setDetailsForm({ nome: '', email: '', username: '', papel: 'leitor', ativo: true })
+    setDetailsError('')
+    setDetailsSuccess('')
+  }
+
+  async function handleUpdateDetails(event: React.FormEvent) {
+    event.preventDefault()
+    if (!detailsPessoaId) return
+
+    setDetailsError('')
+    setDetailsSuccess('')
+    setDetailsSubmitting(true)
+
+    try {
+      const updates = []
+      const pessoa = pessoaById.get(detailsPessoaId)
+      const usuario = usuariosByPessoaId.get(detailsPessoaId)
+
+      // Verificar permissões e preparar updates
+      const canEditPessoa = userRole === 'admin' || userRole === 'atendente' || user?.pessoa_id === detailsPessoaId
+      const canEditUsuario = userRole === 'admin' && usuario
+
+      if (canEditPessoa && (detailsForm.nome !== pessoa?.nome || detailsForm.email !== pessoa?.email)) {
+        const pessoaUpdate = {}
+        if (detailsForm.nome !== pessoa?.nome) Object.assign(pessoaUpdate, { nome: detailsForm.nome })
+        if (detailsForm.email !== pessoa?.email) Object.assign(pessoaUpdate, { email: detailsForm.email })
+        updates.push(
+          apiFetch(`/api/v1/pessoas/${detailsPessoaId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(pessoaUpdate),
+          })
+        )
+      }
+
+      if (canEditUsuario && usuario) {
+        const usuarioUpdate = {}
+        if (userRole === 'admin') {
+          if (detailsForm.papel !== usuario.papel) Object.assign(usuarioUpdate, { papel: detailsForm.papel })
+          if (detailsForm.ativo !== usuario.ativo) Object.assign(usuarioUpdate, { ativo: detailsForm.ativo })
+        }
+        if (Object.keys(usuarioUpdate).length > 0) {
+          updates.push(
+            apiFetch(`/api/v1/usuarios/${usuario.id}`, {
+              method: 'PATCH',
+              body: JSON.stringify(usuarioUpdate),
+            })
+          )
+        }
+      }
+
+      if (updates.length > 0) {
+        await Promise.all(updates)
+        setDetailsSuccess('Alterações salvas com sucesso.')
+        await Promise.all([loadPessoas(), loadUsuarios()])
+      } else {
+        setDetailsSuccess('Nenhuma alteração detectada.')
+      }
+    } catch (error) {
+      setDetailsError(error instanceof Error ? error.message : 'Falha ao atualizar detalhes')
+    } finally {
+      setDetailsSubmitting(false)
+    }
+  }
+
+  function renderDetailsModal() {
+    if (!detailsPessoaId) return null
+
+    const pessoa = pessoaById.get(detailsPessoaId)
+    const usuario = usuariosByPessoaId.get(detailsPessoaId)
+    const canEdit = userRole === 'admin' || userRole === 'atendente' || user?.pessoa_id === detailsPessoaId
+    const canEditPapel = userRole === 'admin'
+
+    return (
+      <div className="modal-overlay" onClick={handleCloseDetails}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-head">
+            <h2>Detalhes do Leitor</h2>
+            <button type="button" className="ghost" onClick={handleCloseDetails}>
+              ✕
+            </button>
+          </div>
+
+          {detailsLoading ? (
+            <p className="modal-body">Carregando...</p>
+          ) : (
+            <form onSubmit={handleUpdateDetails} className="modal-body">
+              {detailsError ? <p className="error">{detailsError}</p> : null}
+              {detailsSuccess ? <p>{detailsSuccess}</p> : null}
+
+              <label>
+                Nome
+                <input
+                  value={detailsForm.nome}
+                  onChange={(event) => setDetailsForm({ ...detailsForm, nome: event.target.value })}
+                  disabled={!canEdit}
+                />
+              </label>
+
+              <label>
+                Email
+                <input
+                  type="email"
+                  value={detailsForm.email}
+                  onChange={(event) => setDetailsForm({ ...detailsForm, email: event.target.value })}
+                  disabled={!canEdit}
+                />
+              </label>
+
+              {usuario ? (
+                <>
+                  <label>
+                    Username
+                    <input value={detailsForm.username} disabled />
+                  </label>
+
+                  {canEditPapel ? (
+                    <label>
+                      Papel
+                      <select value={detailsForm.papel} onChange={(event) => setDetailsForm({ ...detailsForm, papel: event.target.value as Papel })}>
+                        <option value="leitor">leitor</option>
+                        <option value="atendente">atendente</option>
+                        <option value="admin">admin</option>
+                      </select>
+                    </label>
+                  ) : (
+                    <label>
+                      Papel
+                      <input value={detailsForm.papel} disabled />
+                    </label>
+                  )}
+
+                  {canEditPapel ? (
+                    <label className="checkbox">
+                      <input
+                        type="checkbox"
+                        checked={detailsForm.ativo}
+                        onChange={(event) => setDetailsForm({ ...detailsForm, ativo: event.target.checked })}
+                      />
+                      Ativo
+                    </label>
+                  ) : null}
+                </>
+              ) : (
+                <p className="help-text">Sem conta vinculada</p>
+              )}
+
+              {canEdit ? (
+                <button type="submit" disabled={detailsSubmitting}>
+                  {detailsSubmitting ? 'Salvando...' : 'Salvar alterações'}
+                </button>
+              ) : null}
+            </form>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   function renderBooksSection() {
     return (
       <section className="panel">
@@ -820,6 +1017,15 @@ export function App() {
                   <p>{pessoa.email}</p>
                   <small>{usuario ? `Conta: ${usuario.username} · Papel: ${usuario.papel}` : 'Sem conta vinculada'}</small>
                 </div>
+                <div className="book-actions">
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => handleOpenDetails(pessoa.id).catch(() => undefined)}
+                  >
+                    Editar
+                  </button>
+                </div>
               </article>
             )
           })}
@@ -931,6 +1137,8 @@ export function App() {
         ) : (
           renderBooksSection()
         )}
+
+        {renderDetailsModal()}
       </main>
     </div>
   )
