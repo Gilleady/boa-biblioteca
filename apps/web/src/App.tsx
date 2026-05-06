@@ -627,8 +627,10 @@ export function App() {
       if (canEditUsuario && usuario) {
         const usuarioUpdate = {}
         if (userRole === 'admin') {
+          if (detailsForm.username && detailsForm.username !== usuario.username) Object.assign(usuarioUpdate, { username: detailsForm.username })
           if (detailsForm.papel !== usuario.papel) Object.assign(usuarioUpdate, { papel: detailsForm.papel })
           if (detailsForm.ativo !== usuario.ativo) Object.assign(usuarioUpdate, { ativo: detailsForm.ativo })
+          if (detailsForm.senha && detailsForm.senha.trim() !== '') Object.assign(usuarioUpdate, { senha: detailsForm.senha })
         }
         if (Object.keys(usuarioUpdate).length > 0) {
           updates.push(
