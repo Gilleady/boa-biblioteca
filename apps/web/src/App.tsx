@@ -466,7 +466,7 @@ export function App() {
             pessoa_id: pessoa.id,
             username,
             senha: leitorForm.senha.trim(),
-            papel: leitorForm.papel,
+            papel: userRole === 'atendente' ? 'leitor' : leitorForm.papel,
             ativo: leitorForm.ativo,
           }),
         })
@@ -694,11 +694,17 @@ export function App() {
               </label>
               <label>
                 Papel
-                <select value={leitorForm.papel} onChange={(event) => setLeitorForm({ ...leitorForm, papel: event.target.value as Papel })}>
-                  <option value="leitor">leitor</option>
-                  <option value="atendente">atendente</option>
-                  <option value="admin">admin</option>
-                </select>
+                {userRole === 'atendente' ? (
+                  <select value="leitor" disabled>
+                    <option value="leitor">leitor</option>
+                  </select>
+                ) : (
+                  <select value={leitorForm.papel} onChange={(event) => setLeitorForm({ ...leitorForm, papel: event.target.value as Papel })}>
+                    <option value="leitor">leitor</option>
+                    <option value="atendente">atendente</option>
+                    <option value="admin">admin</option>
+                  </select>
+                )}
               </label>
               <label className="checkbox">
                 <input
