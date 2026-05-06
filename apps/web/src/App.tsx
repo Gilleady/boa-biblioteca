@@ -150,6 +150,7 @@ export function App() {
     nome: '',
     email: '',
     username: '',
+    senha: '',
     papel: 'leitor' as Papel,
     ativo: true,
   })
@@ -589,7 +590,7 @@ export function App() {
 
   function handleCloseDetails() {
     setDetailsPessoaId(null)
-    setDetailsForm({ nome: '', email: '', username: '', papel: 'leitor', ativo: true })
+    setDetailsForm({ nome: '', email: '', username: '', senha: '', papel: 'leitor', ativo: true })
     setDetailsError('')
     setDetailsSuccess('')
   }
@@ -658,8 +659,9 @@ export function App() {
 
     const pessoa = pessoaById.get(detailsPessoaId)
     const usuario = usuariosByPessoaId.get(detailsPessoaId)
-    const canEdit = userRole === 'admin' || userRole === 'atendente' || user?.pessoa_id === detailsPessoaId
-    const canEditPapel = userRole === 'admin'
+    const isOwnProfile = user?.pessoa_id === detailsPessoaId
+    const canEditFull = userRole === 'admin'
+    const canEditBasic = userRole === 'admin' || userRole === 'atendente' || isOwnProfile
 
     return (
       <div className="modal-overlay" onClick={handleCloseDetails}>
@@ -683,7 +685,7 @@ export function App() {
                 <input
                   value={detailsForm.nome}
                   onChange={(event) => setDetailsForm({ ...detailsForm, nome: event.target.value })}
-                  disabled={!canEdit}
+                  disabled={!canEditBasic}
                 />
               </label>
 
@@ -693,7 +695,7 @@ export function App() {
                   type="email"
                   value={detailsForm.email}
                   onChange={(event) => setDetailsForm({ ...detailsForm, email: event.target.value })}
-                  disabled={!canEdit}
+                  disabled={!canEditBasic}
                 />
               </label>
 
@@ -701,41 +703,57 @@ export function App() {
                 <>
                   <label>
                     Username
-                    <input value={detailsForm.username} disabled />
+                    <input
+                      value={detailsForm.username}
+                      onChange={(event) => setDetailsForm({ ...detailsForm, username: event.target.value })}
+                      disabled={!canEditFull}
+                    />
                   </label>
 
-                  {canEditPapel ? (
-                    <label>
-                      Papel
-                      <select value={detailsForm.papel} onChange={(event) => setDetailsForm({ ...detailsForm, papel: event.target.value as Papel })}>
-                        <option value="leitor">leitor</option>
-                        <option value="atendente">atendente</option>
-                        <option value="admin">admin</option>
-                      </select>
-                    </label>
-                  ) : (
-                    <label>
-                      Papel
-                      <input value={detailsForm.papel} disabled />
-                    </label>
-                  )}
+                  {canEditFull ? (
+                    <>
+                      <label>
+                        Nova senha (deixe em branco para manter)
+                        <input
+                          type="password"
+                          value={detailsForm.senha}
+                          onChange={(event) => setDetailsForm({ ...detailsForm, senha: event.target.value })}
+                          placeholder="Apenas admin pode alterar"
+                        />
+                      </label>
 
-                  {canEditPapel ? (
-                    <label className="checkbox">
-                      <input
-                        type="checkbox"
-                        checked={detailsForm.ativo}
-                        onChange={(event) => setDetailsForm({ ...detailsForm, ativo: event.target.checked })}
-                      />
-                      Ativo
-                    </label>
-                  ) : null}
+                      <label>
+                        Papel
+                        <select value={detailsForm.papel} onChange={(event) => setDetailsForm({ ...detailsForm, papel: event.target.value as Papel })}>
+                          <option value="leitor">leitor</option>
+                          <option value="atendente">atendente</option>
+                          <option value="admin">admin</option>
+                        </select>
+                      </label>
+
+                      <label className="checkbox">
+                        <input
+                          type="checkbox"
+                          checked={detailsForm.ativo}
+                          onChange={(event) => setDetailsForm({ ...detailsForm, ativo: event.target.checked })}
+                        />
+                        Ativo
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <label>
+                        Papel
+                        <input value={detailsForm.papel} disabled />
+                      </label>
+                    </>
+                  )}
                 </>
               ) : (
                 <p className="help-text">Sem conta vinculada</p>
               )}
 
-              {canEdit ? (
+              {canEditBasic ? (
                 <button type="submit" disabled={detailsSubmitting}>
                   {detailsSubmitting ? 'Salvando...' : 'Salvar alterações'}
                 </button>
