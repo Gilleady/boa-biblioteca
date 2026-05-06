@@ -133,12 +133,20 @@ export function App() {
   const [pessoaError, setPessoaError] = useState('')
   const [emprestimoError, setEmprestimoError] = useState('')
   const [emprestimoSuccess, setEmprestimoSuccess] = useState('')
-  const [usuarioError, setUsuarioError] = useState('')
-  const [usuarioSuccess, setUsuarioSuccess] = useState('')
+  const [leitorError, setLeitorError] = useState('')
+  const [leitorSuccess, setLeitorSuccess] = useState('')
 
   const [livroForm, setLivroForm] = useState({ titulo: '', autor: '', isbn: '', ano_publicacao: '', disponivel: true })
   const [emprestimoForm, setEmprestimoForm] = useState({ pessoa_id: '', livro_id: '' })
-  const [usuarioForm, setUsuarioForm] = useState({ pessoa_id: '', username: '', senha: '', papel: 'leitor' as Papel, ativo: true })
+  const [leitorForm, setLeitorForm] = useState({
+    nome: '',
+    email: '',
+    criarUsuario: false,
+    username: '',
+    senha: '',
+    papel: 'leitor' as Papel,
+    ativo: true,
+  })
 
   const [activeTab, setActiveTab] = useState<TabKey>('livros')
 
@@ -166,6 +174,7 @@ export function App() {
   const livrosDisponiveis = useMemo(() => livros.filter((livro) => livro.disponivel), [livros])
   const livroById = useMemo(() => new Map(livros.map((livro) => [livro.id, livro])), [livros])
   const pessoaById = useMemo(() => new Map(pessoas.map((pessoa) => [pessoa.id, pessoa])), [pessoas])
+  const usuariosByPessoaId = useMemo(() => new Map(usuarios.map((usuario) => [usuario.pessoa_id, usuario])), [usuarios])
 
   const availableTabs = useMemo<TabKey[]>(() => {
     const tabs: TabKey[] = ['livros', 'emprestimos']
@@ -188,6 +197,15 @@ export function App() {
       setPessoas([])
       setUsuarios([])
       setEmprestimoForm({ pessoa_id: '', livro_id: '' })
+      setLeitorForm({
+        nome: '',
+        email: '',
+        criarUsuario: false,
+        username: '',
+        senha: '',
+        papel: 'leitor',
+        ativo: true,
+      })
       Promise.all(tasks).catch(() => undefined)
       return
     }
@@ -196,12 +214,12 @@ export function App() {
       tasks.push(loadPessoas())
     }
 
-    if (canManageUsers) {
+    if (canViewReaders) {
       tasks.push(loadUsuarios())
     }
 
     Promise.all(tasks).catch(() => undefined)
-  }, [canManageLoans, canManageUsers, isAuthenticated])
+  }, [canManageLoans, canViewReaders, isAuthenticated])
 
   useEffect(() => {
     if (!isAuthenticated || !canManageLoans) {
@@ -255,12 +273,12 @@ export function App() {
 
   async function loadUsuarios() {
     setLoadingUsuarios(true)
-    setUsuarioError('')
+    setLeitorError('')
     try {
-      const response = await apiFetch<PaginatedResponse<Usuario>>('/api/v1/usuarios?page_size=200')
+      const response = await apiFetch<PaginatedResponse<Usuario>>('/api/v1/usuarios?page_size=100')
       setUsuarios(response.items)
     } catch (error) {
-      setUsuarioError(error instanceof Error ? error.message : 'Falha ao carregar usuários')
+      setLeitorError(error instanceof Error ? error.message : 'Falha ao carregar usuários')
     } finally {
       setLoadingUsuarios(false)
     }
@@ -413,28 +431,60 @@ export function App() {
     }
   }
 
-  async function handleCreateUsuario(event: React.FormEvent) {
+  async function handleCreateLeitor(event: React.FormEvent) {
     event.preventDefault()
-    setUsuarioError('')
-    setUsuarioSuccess('')
+    setLeitorError('')
+    setLeitorSuccess('')
+
+    const nome = leitorForm.nome.trim()
+    const email = leitorForm.email.trim()
+    const username = leitorForm.username.trim()
+
+    if (!nome || !email) {
+      setLeitorError('Informe nome e email para criar o leitor.')
+      return
+    }
+
+    if (leitorForm.criarUsuario && (!username || !leitorForm.senha.trim())) {
+      setLeitorError('Informe username e senha para criar a conta do leitor.')
+      return
+    }
 
     try {
-      await apiFetch('/api/v1/usuarios', {
+      const pessoa = await apiFetch<Pessoa>('/api/v1/pessoas', {
         method: 'POST',
         body: JSON.stringify({
-          pessoa_id: usuarioForm.pessoa_id,
-          username: usuarioForm.username,
-          senha: usuarioForm.senha,
-          papel: usuarioForm.papel,
-          ativo: usuarioForm.ativo,
+          nome,
+          email,
         }),
       })
 
-      setUsuarioForm({ pessoa_id: '', username: '', senha: '', papel: 'leitor', ativo: true })
-      setUsuarioSuccess('Usuário criado com sucesso.')
-      await loadUsuarios()
+      if (leitorForm.criarUsuario) {
+        await apiFetch('/api/v1/usuarios', {
+          method: 'POST',
+          body: JSON.stringify({
+            pessoa_id: pessoa.id,
+            username,
+            senha: leitorForm.senha.trim(),
+            papel: leitorForm.papel,
+            ativo: leitorForm.ativo,
+          }),
+        })
+      }
+
+      setLeitorForm({
+        nome: '',
+        email: '',
+        criarUsuario: false,
+        username: '',
+        senha: '',
+        papel: 'leitor',
+        ativo: true,
+      })
+      setLeitorSuccess(leitorForm.criarUsuario ? 'Leitor e conta criados com sucesso.' : 'Leitor criado com sucesso.')
+      await Promise.all([loadPessoas(), loadUsuarios()])
     } catch (error) {
-      setUsuarioError(error instanceof Error ? error.message : 'Falha ao criar usuário')
+      setLeitorError(error instanceof Error ? error.message : 'Falha ao criar leitor')
     }
   }
 
@@ -607,63 +657,78 @@ export function App() {
       <section className="panel">
         <div className="section-head">
           <h2>Leitores</h2>
-          <button type="button" onClick={() => loadUsuarios().catch(() => undefined)}>
+          <button type="button" onClick={() => Promise.all([loadPessoas(), loadUsuarios()]).catch(() => undefined)}>
             Recarregar
           </button>
         </div>
 
-        {canManageUsers ? (
-          <form className="card form grid-compact" onSubmit={handleCreateUsuario}>
-            <h3>Novo leitor</h3>
-            {usuarioError ? <p className="error">{usuarioError}</p> : null}
-            {usuarioSuccess ? <p>{usuarioSuccess}</p> : null}
-            <label>
-              Pessoa
-              <select value={usuarioForm.pessoa_id} onChange={(event) => setUsuarioForm({ ...usuarioForm, pessoa_id: event.target.value })}>
-                <option value="">Selecione uma pessoa</option>
-                {pessoas.map((pessoa) => (
-                  <option key={pessoa.id} value={pessoa.id}>
-                    {pessoa.nome} · {pessoa.email}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Username
-              <input value={usuarioForm.username} onChange={(event) => setUsuarioForm({ ...usuarioForm, username: event.target.value })} />
-            </label>
-            <label>
-              Senha
-              <input type="password" value={usuarioForm.senha} onChange={(event) => setUsuarioForm({ ...usuarioForm, senha: event.target.value })} />
-            </label>
-            <label>
-              Papel
-              <select value={usuarioForm.papel} onChange={(event) => setUsuarioForm({ ...usuarioForm, papel: event.target.value as Papel })}>
-                <option value="leitor">leitor</option>
-                <option value="atendente">atendente</option>
-                <option value="admin">admin</option>
-              </select>
-            </label>
-            <label className="checkbox">
-              <input type="checkbox" checked={usuarioForm.ativo} onChange={(event) => setUsuarioForm({ ...usuarioForm, ativo: event.target.checked })} />
-              Ativo
-            </label>
-            <button type="submit">Criar usuário</button>
-          </form>
-        ) : null}
+        <form className="card form grid-compact" onSubmit={handleCreateLeitor}>
+          <h3>Novo leitor</h3>
+          {leitorError ? <p className="error">{leitorError}</p> : null}
+          {leitorSuccess ? <p>{leitorSuccess}</p> : null}
+          <label>
+            Nome
+            <input value={leitorForm.nome} onChange={(event) => setLeitorForm({ ...leitorForm, nome: event.target.value })} />
+          </label>
+          <label>
+            Email
+            <input type="email" value={leitorForm.email} onChange={(event) => setLeitorForm({ ...leitorForm, email: event.target.value })} />
+          </label>
+          <label className="checkbox">
+            <input
+              type="checkbox"
+              checked={leitorForm.criarUsuario}
+              onChange={(event) => setLeitorForm({ ...leitorForm, criarUsuario: event.target.checked })}
+            />
+            Criar usuário
+          </label>
+          {leitorForm.criarUsuario ? (
+            <>
+              <label>
+                Username
+                <input value={leitorForm.username} onChange={(event) => setLeitorForm({ ...leitorForm, username: event.target.value })} />
+              </label>
+              <label>
+                Senha
+                <input type="password" value={leitorForm.senha} onChange={(event) => setLeitorForm({ ...leitorForm, senha: event.target.value })} />
+              </label>
+              <label>
+                Papel
+                <select value={leitorForm.papel} onChange={(event) => setLeitorForm({ ...leitorForm, papel: event.target.value as Papel })}>
+                  <option value="leitor">leitor</option>
+                  <option value="atendente">atendente</option>
+                  <option value="admin">admin</option>
+                </select>
+              </label>
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={leitorForm.ativo}
+                  onChange={(event) => setLeitorForm({ ...leitorForm, ativo: event.target.checked })}
+                />
+                Ativo
+              </label>
+            </>
+          ) : null}
+          <button type="submit">Criar leitor</button>
+        </form>
 
         <div className="list">
-          {loadingUsuarios ? <p>Carregando leitores...</p> : null}
-          {!loadingUsuarios && usuarios.length === 0 ? <p>Nenhum leitor encontrado.</p> : null}
-          {usuarios.map((usuarioItem) => (
-            <article className="card book" key={usuarioItem.id}>
-              <div>
-                <h3>{usuarioItem.username}</h3>
-                <p>Pessoa: {usuarioItem.pessoa_id}</p>
-                <small>Papel: {usuarioItem.papel}</small>
-              </div>
-            </article>
-          ))}
+          {loadingPessoas ? <p>Carregando leitores...</p> : null}
+          {!loadingPessoas && pessoas.length === 0 ? <p>Nenhum leitor encontrado.</p> : null}
+          {pessoas.map((pessoa) => {
+            const usuario = usuariosByPessoaId.get(pessoa.id)
+
+            return (
+              <article className="card book" key={pessoa.id}>
+                <div>
+                  <h3>{pessoa.nome}</h3>
+                  <p>{pessoa.email}</p>
+                  <small>{usuario ? `Conta: ${usuario.username} · Papel: ${usuario.papel}` : 'Sem conta vinculada'}</small>
+                </div>
+              </article>
+            )
+          })}
         </div>
       </section>
     )
