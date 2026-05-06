@@ -578,6 +578,7 @@ export function App() {
         nome: pessoa.nome,
         email: pessoa.email,
         username: usuario?.username ?? '',
+        senha: '',
         papel: usuario?.papel ?? 'leitor',
         ativo: usuario?.ativo ?? true,
       })
