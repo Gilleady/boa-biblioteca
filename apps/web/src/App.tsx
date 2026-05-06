@@ -135,6 +135,9 @@ export function App() {
   const [emprestimoSuccess, setEmprestimoSuccess] = useState('')
   const [leitorError, setLeitorError] = useState('')
   const [leitorSuccess, setLeitorSuccess] = useState('')
+  const [leitorSearch, setLeitorSearch] = useState('')
+
+  const [submittingLeitor, setSubmittingLeitor] = useState(false)
 
   const [livroForm, setLivroForm] = useState({ titulo: '', autor: '', isbn: '', ano_publicacao: '', disponivel: true })
   const [emprestimoForm, setEmprestimoForm] = useState({ pessoa_id: '', livro_id: '' })
@@ -175,6 +178,23 @@ export function App() {
   const livroById = useMemo(() => new Map(livros.map((livro) => [livro.id, livro])), [livros])
   const pessoaById = useMemo(() => new Map(pessoas.map((pessoa) => [pessoa.id, pessoa])), [pessoas])
   const usuariosByPessoaId = useMemo(() => new Map(usuarios.map((usuario) => [usuario.pessoa_id, usuario])), [usuarios])
+  const filteredPessoas = useMemo(() => {
+    const normalizedSearch = leitorSearch.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return pessoas
+    }
+
+    return pessoas.filter((pessoa) => {
+      const usuario = usuariosByPessoaId.get(pessoa.id)
+      return (
+        pessoa.nome.toLowerCase().includes(normalizedSearch) ||
+        pessoa.email.toLowerCase().includes(normalizedSearch) ||
+        usuario?.username.toLowerCase().includes(normalizedSearch) ||
+        usuario?.papel.toLowerCase().includes(normalizedSearch)
+      )
+    })
+  }, [leitorSearch, pessoas, usuariosByPessoaId])
 
   const availableTabs = useMemo<TabKey[]>(() => {
     const tabs: TabKey[] = ['livros', 'emprestimos']
@@ -436,6 +456,9 @@ export function App() {
     setLeitorError('')
     setLeitorSuccess('')
 
+  if (submittingLeitor) return
+  setSubmittingLeitor(true)
+
     const nome = leitorForm.nome.trim()
     const email = leitorForm.email.trim()
     const username = leitorForm.username.trim()
@@ -485,6 +508,8 @@ export function App() {
       await Promise.all([loadPessoas(), loadUsuarios()])
     } catch (error) {
       setLeitorError(error instanceof Error ? error.message : 'Falha ao criar leitor')
+    } finally {
+      setSubmittingLeitor(false)
     }
   }
 
@@ -719,10 +744,19 @@ export function App() {
           <button type="submit">Criar leitor</button>
         </form>
 
+        <label className="card form grid-compact">
+          <span>Pesquisar leitor</span>
+          <input
+            value={leitorSearch}
+            onChange={(event) => setLeitorSearch(event.target.value)}
+            placeholder="Buscar por nome, email, username ou papel"
+          />
+        </label>
+
         <div className="list">
           {loadingPessoas ? <p>Carregando leitores...</p> : null}
-          {!loadingPessoas && pessoas.length === 0 ? <p>Nenhum leitor encontrado.</p> : null}
-          {pessoas.map((pessoa) => {
+          {!loadingPessoas && filteredPessoas.length === 0 ? <p>Nenhum leitor encontrado.</p> : null}
+          {filteredPessoas.map((pessoa) => {
             const usuario = usuariosByPessoaId.get(pessoa.id)
 
             return (
