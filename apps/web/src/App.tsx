@@ -61,7 +61,7 @@ type PaginatedResponse<T> = {
   page_size: number
 }
 
-type TabKey = 'livros' | 'emprestimos' | 'usuarios' | 'cadastrar-livro' | 'cadastrar-usuario' | 'registrar-emprestimo'
+type TabKey = 'livros' | 'emprestimos' | 'leitores'
 
 const DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'medium',
@@ -161,6 +161,7 @@ export function App() {
   const userRole = useMemo(() => user?.papel ?? null, [user])
   const canManageCatalog = useMemo(() => userRole === 'admin' || userRole === 'atendente', [userRole])
   const canManageLoans = useMemo(() => userRole === 'admin' || userRole === 'atendente', [userRole])
+  const canViewReaders = useMemo(() => userRole === 'admin' || userRole === 'atendente', [userRole])
   const canManageUsers = useMemo(() => userRole === 'admin', [userRole])
   const livrosDisponiveis = useMemo(() => livros.filter((livro) => livro.disponivel), [livros])
   const livroById = useMemo(() => new Map(livros.map((livro) => [livro.id, livro])), [livros])
@@ -168,14 +169,11 @@ export function App() {
 
   const availableTabs = useMemo<TabKey[]>(() => {
     const tabs: TabKey[] = ['livros', 'emprestimos']
-    if (isAuthenticated && canManageCatalog) {
-      tabs.splice(1, 0, 'cadastrar-livro', 'registrar-emprestimo')
-    }
-    if (isAuthenticated && canManageUsers) {
-      tabs.push('cadastrar-usuario', 'usuarios')
+    if (isAuthenticated && canViewReaders) {
+      tabs.push('leitores')
     }
     return tabs
-  }, [canManageCatalog, canManageUsers, isAuthenticated])
+  }, [canManageCatalog, canViewReaders, isAuthenticated])
 
   useEffect(() => {
     if (!availableTabs.includes(activeTab)) {
@@ -450,7 +448,7 @@ export function App() {
           </button>
         </div>
 
-        {activeTab === 'cadastrar-livro' && canManageCatalog ? (
+        {canManageCatalog ? (
           <form className="card form grid-compact" onSubmit={handleCreateLivro}>
             <h3>Novo livro</h3>
             {livroError ? <p className="error">{livroError}</p> : null}
@@ -600,23 +598,23 @@ export function App() {
     )
   }
 
-  function renderUsersSection() {
-    if (!canManageUsers) {
+  function renderReadersSection() {
+    if (!canViewReaders) {
       return null
     }
 
     return (
       <section className="panel">
         <div className="section-head">
-          <h2>Usuários</h2>
+          <h2>Leitores</h2>
           <button type="button" onClick={() => loadUsuarios().catch(() => undefined)}>
             Recarregar
           </button>
         </div>
 
-        {activeTab === 'cadastrar-usuario' ? (
+        {canManageUsers ? (
           <form className="card form grid-compact" onSubmit={handleCreateUsuario}>
-            <h3>Novo usuário</h3>
+            <h3>Novo leitor</h3>
             {usuarioError ? <p className="error">{usuarioError}</p> : null}
             {usuarioSuccess ? <p>{usuarioSuccess}</p> : null}
             <label>
@@ -655,8 +653,8 @@ export function App() {
         ) : null}
 
         <div className="list">
-          {loadingUsuarios ? <p>Carregando usuários...</p> : null}
-          {!loadingUsuarios && usuarios.length === 0 ? <p>Nenhum usuário encontrado.</p> : null}
+          {loadingUsuarios ? <p>Carregando leitores...</p> : null}
+          {!loadingUsuarios && usuarios.length === 0 ? <p>Nenhum leitor encontrado.</p> : null}
           {usuarios.map((usuarioItem) => (
             <article className="card book" key={usuarioItem.id}>
               <div>
@@ -755,36 +753,21 @@ export function App() {
           <section className="panel tabs-panel">
             <div className="tabs" role="tablist" aria-label="Seções da biblioteca">
               <TabButton active={activeTab === 'livros'} onClick={() => setActiveTab('livros')}>
-                Consultar Livros
+                Livros
               </TabButton>
-              {canManageCatalog ? (
-                <>
-                  <TabButton active={activeTab === 'cadastrar-livro'} onClick={() => setActiveTab('cadastrar-livro')}>
-                    Cadastro de Livro
-                  </TabButton>
-                  <TabButton active={activeTab === 'registrar-emprestimo'} onClick={() => setActiveTab('registrar-emprestimo')}>
-                    Realizar Empréstimo
-                  </TabButton>
-                </>
-              ) : null}
               <TabButton active={activeTab === 'emprestimos'} onClick={() => setActiveTab('emprestimos')}>
-                Consultar Empréstimos
+                Empréstimos
               </TabButton>
-              {canManageUsers ? (
-                <>
-                  <TabButton active={activeTab === 'cadastrar-usuario'} onClick={() => setActiveTab('cadastrar-usuario')}>
-                    Cadastro de Usuário
-                  </TabButton>
-                  <TabButton active={activeTab === 'usuarios'} onClick={() => setActiveTab('usuarios')}>
-                    Consultar Usuários
-                  </TabButton>
-                </>
+              {canViewReaders ? (
+                <TabButton active={activeTab === 'leitores'} onClick={() => setActiveTab('leitores')}>
+                  Leitores
+                </TabButton>
               ) : null}
             </div>
 
-            {activeTab === 'livros' || activeTab === 'cadastrar-livro' ? renderBooksSection() : null}
-            {activeTab === 'emprestimos' || activeTab === 'registrar-emprestimo' ? renderLoansSection() : null}
-            {activeTab === 'cadastrar-usuario' || activeTab === 'usuarios' ? renderUsersSection() : null}
+            {activeTab === 'livros' ? renderBooksSection() : null}
+            {activeTab === 'emprestimos' ? renderLoansSection() : null}
+            {activeTab === 'leitores' ? renderReadersSection() : null}
           </section>
         ) : (
           renderBooksSection()
