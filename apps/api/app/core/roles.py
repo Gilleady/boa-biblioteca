@@ -1,7 +1,13 @@
 from __future__ import annotations
 
-ROLE_ADMIN = "admin"
-ROLE_ATENDENTE = "atendente"
-ROLE_LEITOR = "leitor"
+from typing import Literal
 
-USER_ROLES = (ROLE_ADMIN, ROLE_ATENDENTE, ROLE_LEITOR)
+ROLE_ADMIN: Literal["admin"] = "admin"
+ROLE_ATENDENTE: Literal["atendente"] = "atendente"
+ROLE_LEITOR: Literal["leitor"] = "leitor"
+
+USER_ROLES: tuple[Literal["admin"], Literal["atendente"], Literal["leitor"]] = (
+    ROLE_ADMIN,
+    ROLE_ATENDENTE,
+    ROLE_LEITOR,
+)
