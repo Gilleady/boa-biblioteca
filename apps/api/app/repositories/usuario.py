@@ -59,7 +59,9 @@ class UsuarioRepository:
         )
         return result.scalar_one_or_none()
 
-    async def create(self, payload: UsuarioCreate, actor_id: UUID | None = None) -> Usuario:
+    async def create(
+        self, payload: UsuarioCreate, actor_id: UUID | None = None
+    ) -> Usuario:
         data = payload.model_dump()
         # Hash the senha before storing
         data["senha_hash"] = hash_password(data.pop("senha"))

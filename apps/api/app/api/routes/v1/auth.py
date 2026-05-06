@@ -175,8 +175,7 @@ async def register(
     return RegisterResponse(
         status="verification_required",
         message=(
-            "Validacao por codigo necessaria para vincular usuario "
-            "a pessoa existente."
+            "Validacao por codigo necessaria para vincular usuario a pessoa existente."
         ),
         verification_code=code if settings.environment == "development" else None,
     )

@@ -58,7 +58,9 @@ class PessoaRepository:
         )
         return bool(result.scalar_one())
 
-    async def create(self, payload: PessoaCreate, actor_id: UUID | None = None) -> Pessoa:
+    async def create(
+        self, payload: PessoaCreate, actor_id: UUID | None = None
+    ) -> Pessoa:
         pessoa = Pessoa(**payload.model_dump())
         if actor_id is not None:
             pessoa.created_by = actor_id
