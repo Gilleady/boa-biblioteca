@@ -136,6 +136,8 @@ export function App() {
   const [leitorError, setLeitorError] = useState('')
   const [leitorSuccess, setLeitorSuccess] = useState('')
   const [leitorSearch, setLeitorSearch] = useState('')
+  const [livroSearch, setLivroSearch] = useState('')
+  const [emprestimoSearch, setEmprestimoSearch] = useState('')
 
   const [submittingLeitor, setSubmittingLeitor] = useState(false)
 
@@ -195,6 +197,41 @@ export function App() {
       )
     })
   }, [leitorSearch, pessoas, usuariosByPessoaId])
+
+  const filteredLivros = useMemo(() => {
+    const normalizedSearch = livroSearch.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return livros
+    }
+
+    return livros.filter((livro) => {
+      return (
+        livro.titulo.toLowerCase().includes(normalizedSearch) ||
+        livro.autor.toLowerCase().includes(normalizedSearch) ||
+        livro.isbn.toLowerCase().includes(normalizedSearch)
+      )
+    })
+  }, [livroSearch, livros])
+
+  const filteredEmprestimos = useMemo(() => {
+    const normalizedSearch = emprestimoSearch.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return emprestimos
+    }
+
+    return emprestimos.filter((emprestimo) => {
+      const pessoa = pessoaById.get(emprestimo.pessoa_id)
+      const livro = livroById.get(emprestimo.livro_id)
+      return (
+        pessoa?.nome.toLowerCase().includes(normalizedSearch) ||
+        pessoa?.email.toLowerCase().includes(normalizedSearch) ||
+        livro?.titulo.toLowerCase().includes(normalizedSearch) ||
+        livro?.autor.toLowerCase().includes(normalizedSearch)
+      )
+    })
+  }, [emprestimoSearch, emprestimos, pessoaById, livroById])
 
   const availableTabs = useMemo<TabKey[]>(() => {
     const tabs: TabKey[] = ['livros', 'emprestimos']
@@ -551,10 +588,19 @@ export function App() {
           </form>
         ) : null}
 
+        <label className="card form grid-compact">
+          <span>Pesquisar livro</span>
+          <input
+            value={livroSearch}
+            onChange={(event) => setLivroSearch(event.target.value)}
+            placeholder="Buscar por título, autor ou ISBN"
+          />
+        </label>
+
         <div className="list">
           {loadingLivros ? <p>Carregando...</p> : null}
-          {!loadingLivros && livros.length === 0 ? <p>Nenhum livro encontrado.</p> : null}
-          {livros.map((livro) => (
+          {!loadingLivros && filteredLivros.length === 0 ? <p>Nenhum livro encontrado.</p> : null}
+          {filteredLivros.map((livro) => (
             <article className="card book" key={livro.id}>
               <div>
                 <h3>{livro.titulo}</h3>
@@ -636,10 +682,18 @@ export function App() {
             <h3>Empréstimos registrados</h3>
             {emprestimoError ? <p className="error">{emprestimoError}</p> : null}
             {emprestimoSuccess ? <p>{emprestimoSuccess}</p> : null}
+            <label className="grid-compact">
+              <span>Pesquisar empréstimo</span>
+              <input
+                value={emprestimoSearch}
+                onChange={(event) => setEmprestimoSearch(event.target.value)}
+                placeholder="Buscar por pessoa, livro ou autor"
+              />
+            </label>
             {loadingEmprestimos ? <p>Carregando...</p> : null}
-            {!loadingEmprestimos && emprestimos.length === 0 ? <p>Nenhum empréstimo encontrado.</p> : null}
+            {!loadingEmprestimos && filteredEmprestimos.length === 0 ? <p>Nenhum empréstimo encontrado.</p> : null}
             <div className="list compact">
-              {emprestimos.map((emprestimo) => {
+              {filteredEmprestimos.map((emprestimo) => {
                 const pessoa = pessoaById.get(emprestimo.pessoa_id)
                 const livro = livroById.get(emprestimo.livro_id)
                 const pessoaNome = pessoa?.nome ?? (emprestimo.pessoa_id === user?.pessoa_id ? 'Você' : emprestimo.pessoa_id)
