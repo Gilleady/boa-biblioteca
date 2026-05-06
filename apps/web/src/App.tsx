@@ -34,6 +34,7 @@ type Usuario = {
   username: string
   pessoa_id: string
   papel: Papel
+  ativo: boolean
 }
 
 type TokenResponse = {
