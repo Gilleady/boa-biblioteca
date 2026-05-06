@@ -1,4 +1,5 @@
-from typing import Callable, Coroutine, Any
+from collections.abc import Callable, Coroutine
+from typing import Any
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, Security, status

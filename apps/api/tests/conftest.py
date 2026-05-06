@@ -3,10 +3,10 @@
 import sys
 from collections.abc import AsyncIterator
 from pathlib import Path
+from typing import Any, cast
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from typing import Any, cast
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
