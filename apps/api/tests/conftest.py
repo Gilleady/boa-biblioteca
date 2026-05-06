@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from typing import Any, cast
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
@@ -47,7 +48,7 @@ async def client(
 
     app.dependency_overrides[get_async_session] = override_get_async_session
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=cast(Any, app))
     async with AsyncClient(
         transport=transport, base_url="http://testserver"
     ) as api_client:

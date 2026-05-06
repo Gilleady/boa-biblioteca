@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from typing import Callable, Coroutine, Any
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, Security, status
@@ -56,7 +56,7 @@ async def get_current_usuario(
     return usuario
 
 
-def require_roles(*allowed_roles: str) -> Callable[..., Usuario]:
+def require_roles(*allowed_roles: str) -> Callable[..., Coroutine[Any, Any, Usuario]]:
     async def dependency(usuario: Usuario = Security(get_current_usuario)) -> Usuario:
         if usuario.papel not in allowed_roles:
             raise HTTPException(

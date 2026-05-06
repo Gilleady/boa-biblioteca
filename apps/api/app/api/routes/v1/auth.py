@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 from secrets import randbelow
-from typing import TypedDict
+from typing import TypedDict, cast, Literal
 
 from fastapi import APIRouter, Depends, Security, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -144,7 +144,7 @@ async def register(
                 username=payload.username,
                 senha=payload.senha,
                 ativo=True,
-                papel=ROLE_LEITOR,
+                papel=cast(Literal["admin", "atendente", "leitor"], ROLE_LEITOR),
             )
         )
         return RegisterResponse(
@@ -253,7 +253,7 @@ async def register_verify(
             username=pending["username"],
             senha=pending["senha"],
             ativo=True,
-            papel=ROLE_LEITOR,
+            papel=cast(Literal["admin", "atendente", "leitor"], ROLE_LEITOR),
         )
     )
     _pending_register_by_email.pop(email, None)
