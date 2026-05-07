@@ -1,5 +1,8 @@
 name: Build and deploy to Azure - boabiblioteca
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches:
@@ -131,16 +134,7 @@ jobs:
       - name: Deploy API to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'boabiblioteca-api'
+          app-name: 'boabiblioteca'
           slot-name: 'Production'
           package: 'apps/api'
 
-      - name: Deploy web frontend to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: 'upload'
-          app_location: 'apps/web'
-          output_location: 'dist'
-          skip_app_build: true
