@@ -1,0 +1,300 @@
+import pytest
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from app.core.security import hash_password
+from app.models.pessoa import Pessoa
+from app.models.usuario import Usuario
+
+
+async def _auth_headers(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+    suffix: str,
+) -> dict[str, str]:
+    username = f"auth_{suffix}"
+    senha = "securepass123"
+
+    async with test_session_maker() as session:
+        pessoa = Pessoa(nome=f"Auth {suffix}", email=f"auth.{suffix}@example.com")
+        session.add(pessoa)
+        await session.flush()
+
+        usuario = Usuario(
+            pessoa_id=pessoa.id,
+            username=username,
+            senha_hash=hash_password(senha),
+            ativo=True,
+            papel="admin",
+        )
+        session.add(usuario)
+        await session.commit()
+
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={"username": username, "senha": senha},
+    )
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.mark.asyncio
+async def test_create_and_get_livro(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "create_and_get")
+
+    payload = {
+        "titulo": "Clean Architecture",
+        "autor": "Robert C. Martin",
+        "isbn": "9780134494166",
+        "ano_publicacao": 2017,
+        "disponivel": True,
+    }
+
+    create_response = await client.post("/api/v1/livros", json=payload, headers=headers)
+    assert create_response.status_code == 201
+
+    created = create_response.json()
+    assert created["titulo"] == payload["titulo"]
+    assert created["isbn"] == payload["isbn"]
+
+    livro_id = created["id"]
+    get_response = await client.get(f"/api/v1/livros/{livro_id}")
+    assert get_response.status_code == 200
+    assert get_response.json()["id"] == livro_id
+
+
+@pytest.mark.asyncio
+async def test_list_livros_supports_pagination_and_filters(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "list_filters")
+
+    await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "Domain-Driven Design",
+            "autor": "Eric Evans",
+            "isbn": "9780321125217",
+            "ano_publicacao": 2003,
+            "disponivel": True,
+        },
+        headers=headers,
+    )
+    await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "Refactoring",
+            "autor": "Martin Fowler",
+            "isbn": "9780201485677",
+            "ano_publicacao": 1999,
+            "disponivel": False,
+        },
+        headers=headers,
+    )
+
+    response = await client.get(
+        "/api/v1/livros",
+        params={"page": 1, "page_size": 1, "disponivel": True, "titulo": "Domain"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["page"] == 1
+    assert body["page_size"] == 1
+    assert len(body["items"]) == 1
+    assert body["items"][0]["titulo"] == "Domain-Driven Design"
+
+
+@pytest.mark.asyncio
+async def test_update_and_delete_livro(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "update_delete")
+
+    create_response = await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "The Pragmatic Programmer",
+            "autor": "Andrew Hunt",
+            "isbn": "9780201616224",
+            "ano_publicacao": 1999,
+            "disponivel": True,
+        },
+        headers=headers,
+    )
+    livro_id = create_response.json()["id"]
+
+    update_response = await client.patch(
+        f"/api/v1/livros/{livro_id}",
+        json={"disponivel": False, "autor": "Dave Thomas"},
+        headers=headers,
+    )
+    assert update_response.status_code == 200
+    updated = update_response.json()
+    assert updated["disponivel"] is False
+    assert updated["autor"] == "Dave Thomas"
+
+    delete_response = await client.delete(f"/api/v1/livros/{livro_id}", headers=headers)
+    assert delete_response.status_code == 204
+
+    not_found_response = await client.get(f"/api/v1/livros/{livro_id}")
+    assert not_found_response.status_code == 404
+    assert not_found_response.json()["error"]["code"] == "livro_not_found"
+
+
+@pytest.mark.asyncio
+async def test_create_livro_returns_conflict_for_duplicate_isbn(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "duplicate_isbn")
+
+    payload = {
+        "titulo": "Patterns of Enterprise Application Architecture",
+        "autor": "Martin Fowler",
+        "isbn": "9780321127426",
+        "ano_publicacao": 2002,
+        "disponivel": True,
+    }
+
+    first_response = await client.post("/api/v1/livros", json=payload, headers=headers)
+    assert first_response.status_code == 201
+
+    second_response = await client.post("/api/v1/livros", json=payload, headers=headers)
+    assert second_response.status_code == 409
+
+    body = second_response.json()
+    assert body["error"]["code"] == "livro_conflict"
+
+
+@pytest.mark.asyncio
+async def test_update_livro_with_empty_payload_returns_bad_request(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "empty_payload")
+
+    create_response = await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "Working Effectively with Legacy Code",
+            "autor": "Michael Feathers",
+            "isbn": "9780131177055",
+            "ano_publicacao": 2004,
+            "disponivel": True,
+        },
+        headers=headers,
+    )
+    livro_id = create_response.json()["id"]
+
+    response = await client.patch(
+        f"/api/v1/livros/{livro_id}",
+        json={},
+        headers=headers,
+    )
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "invalid_payload"
+
+
+@pytest.mark.asyncio
+async def test_validation_error_payload_shape(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "validation_shape")
+
+    response = await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "",
+            "autor": "Autor Valido",
+            "isbn": "123",
+            "ano_publicacao": 2025,
+            "disponivel": True,
+        },
+        headers=headers,
+    )
+
+    assert response.status_code == 422
+    body = response.json()
+    assert body["error"]["code"] == "validation_error"
+    assert body["error"]["message"] == "Request validation failed"
+    assert isinstance(body["error"]["details"], list)
+
+
+@pytest.mark.asyncio
+async def test_list_livros_supports_author_year_and_ordering(
+    client: AsyncClient,
+    test_session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    headers = await _auth_headers(client, test_session_maker, "author_year_order")
+
+    await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "Algorithms",
+            "autor": "Sedgewick",
+            "isbn": "9780321573513",
+            "ano_publicacao": 2011,
+            "disponivel": True,
+        },
+        headers=headers,
+    )
+    await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "Clean Code",
+            "autor": "Robert C. Martin",
+            "isbn": "9780132350884",
+            "ano_publicacao": 2008,
+            "disponivel": True,
+        },
+        headers=headers,
+    )
+    await client.post(
+        "/api/v1/livros",
+        json={
+            "titulo": "Agile Software Development",
+            "autor": "Robert C. Martin",
+            "isbn": "9780135974445",
+            "ano_publicacao": 2011,
+            "disponivel": True,
+        },
+        headers=headers,
+    )
+
+    filtered_response = await client.get(
+        "/api/v1/livros",
+        params={
+            "autor": "Martin",
+            "ano_publicacao": 2011,
+            "order_by": "titulo",
+            "order_direction": "asc",
+        },
+    )
+
+    assert filtered_response.status_code == 200
+    filtered_body = filtered_response.json()
+    assert filtered_body["total"] == 1
+    assert filtered_body["items"][0]["titulo"] == "Agile Software Development"
+
+    ordered_response = await client.get(
+        "/api/v1/livros",
+        params={
+            "autor": "Martin",
+            "order_by": "titulo",
+            "order_direction": "desc",
+        },
+    )
+    assert ordered_response.status_code == 200
+    ordered_items = ordered_response.json()["items"]
+    assert len(ordered_items) == 2
+    assert ordered_items[0]["titulo"] == "Clean Code"
+    assert ordered_items[1]["titulo"] == "Agile Software Development"
