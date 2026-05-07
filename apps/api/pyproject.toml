@@ -56,6 +56,3 @@ exclude = ["alembic/"]
 [[tool.mypy.overrides]]
 module = ["jose", "jose.*", "passlib", "passlib.*"]
 ignore_missing_imports = true
-no_implicit_optional = true
-strict_equality = true
-warn_unused_configs = true

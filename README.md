@@ -171,6 +171,39 @@ uv run mypy app tests
 uv run pytest
 ```
 
+## Deploy Azure (Beta)
+
+O repositorio esta configurado para deploy automatico na branch `main`:
+
+- frontend: workflow [deploy-web-azure.yml](.github/workflows/deploy-web-azure.yml) para Azure Static Web Apps
+- backend: workflow [deploy-api-azure.yml](.github/workflows/deploy-api-azure.yml) para Azure App Service
+
+### Segredos e Variaveis no GitHub
+
+Configure em `Settings > Secrets and variables > Actions`:
+
+- `AZURE_STATIC_WEB_APPS_API_TOKEN` (secret)
+- `AZURE_API_WEBAPP_NAME` (secret)
+- `AZURE_API_WEBAPP_PUBLISH_PROFILE` (secret)
+- `VITE_API_BASE_URL` (repository variable)
+
+### App Settings no Azure (API)
+
+No App Service da API, configure:
+
+- `DATABASE_URL`
+- `ENVIRONMENT=production`
+- `JWT_SECRET_KEY`
+- `CORS_ORIGINS` (ex: `["https://SEU-FRONT.azurestaticapps.net"]`)
+
+Startup command recomendado no App Service (Linux):
+
+```bash
+gunicorn -k uvicorn.workers.UvicornWorker app.main:app
+```
+
+Observacao: apos o merge para `main`, cada novo commit dispara deploy automatico.
+
 ## Troubleshooting
 
 - Erro de CORS no frontend:
